@@ -23,7 +23,6 @@ public class QDSqlCreator extends SqlCreator {
     public boolean insert(Object model) {
         String sql = TableHelper.generateInsertSql(model);
         if (!TextUtils.isEmpty(sql)) {
-            System.out.println(sql);
             getDb().execSQL(sql);
             return true;
         }
@@ -32,7 +31,6 @@ public class QDSqlCreator extends SqlCreator {
 
     @Override
     public boolean insertArray(List models) {
-        long startTime = System.currentTimeMillis();
         SQLiteDatabase db = getDb();
         try {
             if (models == null || models.size() < 1) {
@@ -68,7 +66,6 @@ public class QDSqlCreator extends SqlCreator {
                     }
                 }
                 long result = stat.executeInsert();
-                System.out.println("result="+result);
             }
             db.setTransactionSuccessful();
         } catch (Exception e) {
@@ -82,10 +79,6 @@ public class QDSqlCreator extends SqlCreator {
                 e.printStackTrace();
             }
         }
-
-        long endTime = System.currentTimeMillis();
-        long t1 = endTime - startTime;
-        System.out.println("批量写入，用时:" + t1);
         return true;
     }
 
@@ -101,19 +94,13 @@ public class QDSqlCreator extends SqlCreator {
                         Field field = tableColumn.getField();
                         //boolean accessFlag = field.isAccessible();
                         field.setAccessible(true);
-                        String valueStr = "";
-                        if (field.getType() == int.class) {
-                            valueStr = tableColumn.getField().get(model) + "";
-                        } else if (field.getType() == String.class) {
-                            valueStr = "\"" + tableColumn.getField().get(model) + "\"";
-                        }
+                        String valueStr = tableColumn.getValueSql();
                         //field.setAccessible(accessFlag);
                         sql += (b ? " " : " and ") + tableColumn.getColumnName() + "=" + valueStr;
                         b = false;
                     }
                 }
                 getDb().execSQL(sql);
-                System.out.println("delete=>" + sql);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -126,16 +113,12 @@ public class QDSqlCreator extends SqlCreator {
         TableInfo tableInfo = TableHelper.getTableInfo(clazz);
         String sql = "delete from " + tableInfo.getTableName();//+" where 1=1";
         getDb().execSQL(sql);
-        System.out.println("deleteAll=>" + sql);
         return true;
     }
 
     @Override
     public <T> T modify(T model) {
         TableInfo tableInfo = TableHelper.getTableInfo(model);
-
-        SQLiteDatabase db = getDb();
-        long startTime = System.currentTimeMillis();
         try {
             String value1 = "";
             String value2 = " where ";
@@ -153,14 +136,10 @@ public class QDSqlCreator extends SqlCreator {
 
             String sql = "update " + tableInfo.getTableName() +" set "+ value1;
             sql+= value2;
-            db.execSQL(sql);
+            getDb().execSQL(sql);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        long endTime = System.currentTimeMillis();
-        long t1 = endTime - startTime;
-        System.out.println("修改，用时:" + t1);
-
         return null;
     }
 
@@ -171,7 +150,10 @@ public class QDSqlCreator extends SqlCreator {
 
     @Override
     public <T> T findOne(T model) {
-        List<T> list = findArray(model);
+        TableInfo tableInfo = TableHelper.getTableInfo(model);
+        String[] params = new String[]{"*"};
+        String whereParams = TableHelper.generateWhereParams(tableInfo);
+        List<T> list = (List<T>) TableHelper.generateModels(tableInfo, params, whereParams, model.getClass(), false);
         if (list == null || list.size() == 0) {
             return null;
         }
@@ -180,7 +162,7 @@ public class QDSqlCreator extends SqlCreator {
 
     @Override
     public <T> T findOne(String sql, Class<T> clazz) {
-        List<T> list = findArray(sql, clazz);
+        List<T> list =  TableHelper.generateModels2(sql, clazz, false);
         if (list == null || list.size() == 0) {
             return null;
         }

@@ -2,7 +2,10 @@ package cn.demomaster.quickdatabase;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.database.Cursor;
+import android.database.sqlite.SQLiteCursorDriver;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -14,8 +17,9 @@ import java.util.Random;
 import cn.demomaster.quickdatabase.model.Member;
 import cn.demomaster.quickdatabase.model.User;
 import cn.demomaster.quickdatabaselibrary.QuickDb;
+import cn.demomaster.quickdatabaselibrary.listener.UpgradeInterface;
 
-public class MainActivity extends AppCompatActivity implements QuickDb.DbHelperInterface {
+public class MainActivity extends AppCompatActivity implements UpgradeInterface {
 
     TextView tv_console;
 
@@ -58,10 +62,10 @@ public class MainActivity extends AppCompatActivity implements QuickDb.DbHelperI
         print("总记录数：" + (members == null ? "0" : members.size()));
     }
 
-    private void findList2() {
-        Member member1 = new Member();
-        member1.setId(1);
-        List<Member> members = dbHelper.findArray(member1);
+    public void findList2(View view) {
+       // Member member1 = new Member();
+       // member1.setDescription("描述");
+        List<Member> members = dbHelper.findArray("select * from member where description=\"描述\"",Member.class);
         print("结果数量：" + (members == null ? "0" : members.size()));
     }
 
@@ -77,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements QuickDb.DbHelperI
             Member member1 = new Member();
             member1.setAge(i);
             member1.setName("M_" + i);
+            member1.setDescription("描述");
             members.add(member1);
         }
         dbHelper.insertArray(members);

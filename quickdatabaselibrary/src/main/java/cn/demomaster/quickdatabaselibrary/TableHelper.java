@@ -18,6 +18,10 @@ import cn.demomaster.quickdatabaselibrary.model.TableColumn;
 import cn.demomaster.quickdatabaselibrary.model.TableInfo;
 
 public class TableHelper {
+    static QuickDb mQuickDb;
+    public  TableHelper(QuickDb quickDb) {
+        mQuickDb = quickDb;
+    }
 
     /**
      * 根据实体类创建表
@@ -80,7 +84,6 @@ public class TableHelper {
         return constraints;
     }
 
-    public static SQLiteDatabase db;
     public static String generateInsertSql(Object obj) {
         if (obj == null) {
             return null;
@@ -215,7 +218,7 @@ public class TableHelper {
     }
 
     public static <T> List<T> generateModels(TableInfo tableInfo, String[] params, String whereParams, Class<T> clazz, boolean isArray) {
-        Cursor cursor = db.query(tableInfo.getTableName(), params, whereParams, null, null, null, null);
+        Cursor cursor = mQuickDb.getDb().query(tableInfo.getTableName(), params, whereParams, null, null, null, null);
         List<T> list = new ArrayList<>();
         W:
         while (cursor.moveToNext()) {
@@ -264,13 +267,64 @@ public class TableHelper {
         return list;
     }
 
-    public static void insert(Object obj) throws IllegalAccessException {
+    public static <T> List<T> generateModels2(String sql, Class<T> clazz, boolean isArray) {
+        //Cursor cursor = db.query(tableInfo.getTableName(), params, whereParams, null, null, null, null);
+        Cursor cursor = mQuickDb.execSQL(sql);
+        List<T> list = new ArrayList<>();
+        W:
+        while (cursor.moveToNext()) {
+            try {
+                T model = (T) clazz.getConstructor().newInstance();
+                for (Field fd : model.getClass().getDeclaredFields()) {
+                    Annotation[] anns = fd.getDeclaredAnnotations();
+                    if (anns.length <= 0) {
+                        continue;
+                    }
+                    Object columnValue = null;
+                    String columnName = null;
+                    boolean accessFlag = fd.isAccessible();
+                    fd.setAccessible(true);
+                    for (Annotation annotation : anns) {
+                        if (annotation instanceof SQLObj) {
+                            SQLObj sqlObj = (SQLObj) annotation;
+                            if (sqlObj.name().length() < 1) {
+                                columnName = fd.getName();
+                            } else {
+                                columnName = sqlObj.name();
+                            }
+                            if (fd.getType() == int.class) {
+                                columnValue = cursor.getInt(cursor.getColumnIndex(columnName));
+                            } else if (fd.getType() == String.class) {
+                                columnValue = cursor.getString(cursor.getColumnIndex(columnName));
+                            }
+                            fd.set(model, columnValue);
+                        }
+                    }
+                    fd.setAccessible(accessFlag);
+                }
+
+                list.add(model);
+                if (!isArray) {
+                    break W;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                continue;
+            }
+        }
+        if (cursor != null) {
+            cursor.close();
+        }
+        return list;
+    }
+
+    public static void insert(Object obj){
         TableInfo tableInfo = getTableInfo(obj, obj.getClass());
         ContentValues values = new ContentValues();
         for (TableColumn tableColumn : tableInfo.getTableColumns()) {
             values.put(tableColumn.getColumnName(), tableColumn.getValueObj() + "");
         }
-        db.insert(tableInfo.getTableName(), null, values);
+        mQuickDb.getDb().insert(tableInfo.getTableName(), null, values);
     }
 
     /**

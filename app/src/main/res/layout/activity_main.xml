@@ -86,7 +86,12 @@
                 android:layout_height="wrap_content"
                 android:onClick="findList1"
                 android:text="全部记录"/>
-
+            <Button
+                android:id="@+id/btn_fin03"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="findList2"
+                android:text="sql查找"/>
         </LinearLayout>
 
         <Button

@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
+import cn.demomaster.quickdatabaselibrary.listener.UpgradeInterface;
 import cn.demomaster.quickdatabaselibrary.sql.QDSqlCreator;
 import cn.demomaster.quickdatabaselibrary.sql.SqlCreator;
 import cn.demomaster.quickdatabaselibrary.sql.SqlCreatorInterFace;
@@ -41,11 +42,11 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
      * @param assetsDataBasePath 资源文件中的全路径名
      * @param factory
      * @param version
-     * @param dbHelperInterface
+     * @param upgradeInterface
      */
-    public QuickDb(Context context, String dataBaseName, String assetsDataBasePath, SQLiteDatabase.CursorFactory factory, int version, DbHelperInterface dbHelperInterface) {
+    public QuickDb(Context context, String dataBaseName, String assetsDataBasePath, SQLiteDatabase.CursorFactory factory, int version, UpgradeInterface upgradeInterface) {
         super(context, dataBaseName, factory, version);
-        this.dbHelperInterface = dbHelperInterface;
+        this.upgradeInterface = upgradeInterface;
         this.mContext = context.getApplicationContext();
         this.DATABASE_NAME = dataBaseName;
         this.mAssetsDataBasePath = assetsDataBasePath;
@@ -53,9 +54,17 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
     }
 
     //必须要有构造函数
-    public QuickDb(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, DbHelperInterface dbHelperInterface) {
+    public QuickDb(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, UpgradeInterface upgradeInterface) {
         super(context, name, factory, version);
-        this.dbHelperInterface = dbHelperInterface;
+        this.upgradeInterface = upgradeInterface;
+        this.mContext = context.getApplicationContext();
+        this.DATABASE_NAME = name;
+        initLocalDB();//初始化本地的db文件
+    }
+
+    //必须要有构造函数
+    public QuickDb(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
+        super(context, name, factory, version);
         this.mContext = context.getApplicationContext();
         this.DATABASE_NAME = name;
         initLocalDB();//初始化本地的db文件
@@ -80,8 +89,8 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         //输出更新数据库的日志信息
         //QDLogger.println(TAG, "update Database------------->oldVersion="+oldVersion+",newVersion="+newVersion);
-        if (dbHelperInterface != null) {
-            dbHelperInterface.onUpgrade(db, oldVersion, newVersion);
+        if (upgradeInterface != null) {
+            upgradeInterface.onUpgrade(db, oldVersion, newVersion);
         }
     }
 
@@ -91,8 +100,9 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
     // private static final String SP_KEY_DB_VER = "db_ver";
 
     SqlCreator sqlCreator = null;
+    TableHelper tableHelper = null;
     private void initLocalDB() {
-        TableHelper.db = getDb();
+        tableHelper = new TableHelper(this);
         sqlCreator = new QDSqlCreator(this);
 
         //如果数据库不存在则创建
@@ -217,9 +227,9 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
         return result;
     }
 
-    DbHelperInterface dbHelperInterface;
-    public void setDbHelperInterface(DbHelperInterface dbHelperInterface) {
-        this.dbHelperInterface = dbHelperInterface;
+    UpgradeInterface upgradeInterface;
+    public void setUpgradeInterface(UpgradeInterface upgradeInterface) {
+        this.upgradeInterface = upgradeInterface;
     }
 
     public void createTable(Class clazz) throws Exception {
@@ -278,10 +288,6 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
         return sqlCreator.findArray(sql,clazz);
     }
 
-    public static interface DbHelperInterface {
-        void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion);
-    }
-
     /**
      * 判断某表里某字段是否存在
      *
@@ -313,5 +319,18 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
         Cursor cursor = getDb().rawQuery("select LAST_INSERT_ROWID() ", null);
         cursor.moveToFirst();
         return cursor.getLong(0);
+    }
+
+    public Cursor execSQL(String sql){
+        getDb().acquireReference();
+        Cursor cursor =null;
+        try {
+            String[] selectionArgs =null;
+            cursor = getDb().rawQueryWithFactory(null, sql,selectionArgs,
+                    getDb().findEditTable("MEMBER"), null);
+        } finally {
+            getDb().releaseReference();
+        }
+        return cursor;
     }
 }
