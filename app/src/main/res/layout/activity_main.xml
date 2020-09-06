@@ -55,6 +55,26 @@
             android:orientation="horizontal">
 
             <Button
+                android:id="@+id/btn_mod01"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="modify01"
+                android:text="修改当前记录"/>
+            <Button
+                android:id="@+id/btn_mod02"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="deleteAll"
+                android:text="修改所有数据"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
                 android:id="@+id/btn_fin1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

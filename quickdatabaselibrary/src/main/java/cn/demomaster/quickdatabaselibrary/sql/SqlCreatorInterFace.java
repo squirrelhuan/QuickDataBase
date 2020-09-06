@@ -12,6 +12,9 @@ public interface SqlCreatorInterFace {
     boolean delete(Object model);
     <T> boolean deleteAll(Class<T> clazz);
     //改
+    <T> T modify(T model);
+    boolean modifyArray(List models);
+
     //查
     <T> T findOne(T model);
     <T> T findOne(String sql,Class<T> clazz);

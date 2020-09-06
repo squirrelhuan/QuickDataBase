@@ -44,7 +44,7 @@ public class QDSqlCreator extends SqlCreator {
             boolean isf1 = true;
             for (int i = 0; i < tableInfo.getTableColumns().size(); i++) {
                 TableColumn tableColumn = tableInfo.getTableColumns().get(i);
-                if(!tableColumn.getSqlObj().constraints().autoincrement()) {
+                if (!tableColumn.getSqlObj().constraints().autoincrement()) {
                     value1 += (isf1 ? "" : ",") + tableColumn.getColumnName();
                     value2 += (isf1 ? "?" : ",?");
                     isf1 = false;
@@ -58,9 +58,9 @@ public class QDSqlCreator extends SqlCreator {
             db.beginTransaction();
             for (int j = 0; j < models.size(); j++) {
                 Object obj = models.get(j);
-                int bindIndex =0;
+                int bindIndex = 0;
                 for (int i = 0; i < tableInfo.getTableColumns().size(); i++) {
-                    if(!tableInfo.getTableColumns().get(i).getSqlObj().constraints().autoincrement()) {
+                    if (!tableInfo.getTableColumns().get(i).getSqlObj().constraints().autoincrement()) {
                         Field field = tableInfo.getTableColumns().get(i).getField();
                         field.setAccessible(true);
                         stat.bindString(bindIndex + 1, field.get(obj) + "");
@@ -68,6 +68,7 @@ public class QDSqlCreator extends SqlCreator {
                     }
                 }
                 long result = stat.executeInsert();
+                System.out.println("result="+result);
             }
             db.setTransactionSuccessful();
         } catch (Exception e) {
@@ -112,7 +113,7 @@ public class QDSqlCreator extends SqlCreator {
                     }
                 }
                 getDb().execSQL(sql);
-                System.out.println("delete=>"+sql);
+                System.out.println("delete=>" + sql);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -125,8 +126,47 @@ public class QDSqlCreator extends SqlCreator {
         TableInfo tableInfo = TableHelper.getTableInfo(clazz);
         String sql = "delete from " + tableInfo.getTableName();//+" where 1=1";
         getDb().execSQL(sql);
-        System.out.println("deleteAll=>"+sql);
+        System.out.println("deleteAll=>" + sql);
         return true;
+    }
+
+    @Override
+    public <T> T modify(T model) {
+        TableInfo tableInfo = TableHelper.getTableInfo(model);
+
+        SQLiteDatabase db = getDb();
+        long startTime = System.currentTimeMillis();
+        try {
+            String value1 = "";
+            String value2 = " where ";
+            boolean isf1 = true;
+            for (int i = 0; i < tableInfo.getTableColumns().size(); i++) {
+                TableColumn tableColumn = tableInfo.getTableColumns().get(i);
+                if (!tableColumn.getSqlObj().constraints().autoincrement()) {
+                    value1 += (isf1 ? "" : ",") + tableColumn.getColumnName()+"="+tableColumn.getValueSql();
+                    isf1 = false;
+                }
+                if(tableColumn.getSqlObj().constraints().primaryKey()){
+                    value2+=tableColumn.getColumnName()+"="+tableColumn.getValueSql();
+                }
+            }
+
+            String sql = "update " + tableInfo.getTableName() +" set "+ value1;
+            sql+= value2;
+            db.execSQL(sql);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        long endTime = System.currentTimeMillis();
+        long t1 = endTime - startTime;
+        System.out.println("修改，用时:" + t1);
+
+        return null;
+    }
+
+    @Override
+    public boolean modifyArray(List models) {
+        return false;
     }
 
     @Override

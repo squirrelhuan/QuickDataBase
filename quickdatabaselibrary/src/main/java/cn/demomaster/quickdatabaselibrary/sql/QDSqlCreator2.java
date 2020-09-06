@@ -96,6 +96,16 @@ public class QDSqlCreator2 extends SqlCreator {
     }
 
     @Override
+    public <T> T modify(T model) {
+        return null;
+    }
+
+    @Override
+    public boolean modifyArray(List models) {
+        return false;
+    }
+
+    @Override
     public <T> T findOne(T model) {
         return null;
     }

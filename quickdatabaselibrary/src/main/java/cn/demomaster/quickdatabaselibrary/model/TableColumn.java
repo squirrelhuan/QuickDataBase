@@ -21,6 +21,14 @@ public class TableColumn {
     public Object getValueObj() {
         return valueObj;
     }
+    public String getValueSql() {
+        if (field.getType()==int.class){
+            return valueObj+"";
+        }else if (field.getType()==String.class){
+            return "\""+valueObj+"\"";
+        }
+        return null;
+    }
 
     public void setValueObj(Object valueObj) {
         this.valueObj = valueObj;

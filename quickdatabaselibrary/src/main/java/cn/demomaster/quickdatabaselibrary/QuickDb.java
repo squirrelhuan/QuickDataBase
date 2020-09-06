@@ -24,7 +24,7 @@ import cn.demomaster.quickdatabaselibrary.sql.SqlCreatorInterFace;
  * @date 2018/11/19.
  * description：
  */
-public class DbHelper extends SQLiteOpenHelper implements SqlCreatorInterFace {
+public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
     private Context mContext;
     private SQLiteDatabase db;
 
@@ -43,7 +43,7 @@ public class DbHelper extends SQLiteOpenHelper implements SqlCreatorInterFace {
      * @param version
      * @param dbHelperInterface
      */
-    public DbHelper(Context context, String dataBaseName, String assetsDataBasePath, SQLiteDatabase.CursorFactory factory, int version, DbHelperInterface dbHelperInterface) {
+    public QuickDb(Context context, String dataBaseName, String assetsDataBasePath, SQLiteDatabase.CursorFactory factory, int version, DbHelperInterface dbHelperInterface) {
         super(context, dataBaseName, factory, version);
         this.dbHelperInterface = dbHelperInterface;
         this.mContext = context.getApplicationContext();
@@ -53,7 +53,7 @@ public class DbHelper extends SQLiteOpenHelper implements SqlCreatorInterFace {
     }
 
     //必须要有构造函数
-    public DbHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, DbHelperInterface dbHelperInterface) {
+    public QuickDb(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, DbHelperInterface dbHelperInterface) {
         super(context, name, factory, version);
         this.dbHelperInterface = dbHelperInterface;
         this.mContext = context.getApplicationContext();
@@ -61,7 +61,7 @@ public class DbHelper extends SQLiteOpenHelper implements SqlCreatorInterFace {
         initLocalDB();//初始化本地的db文件
     }
 
-    public DbHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, DatabaseErrorHandler errorHandler) {
+    public QuickDb(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, DatabaseErrorHandler errorHandler) {
         super(context, name, factory, version, errorHandler);
     }
 
@@ -92,6 +92,7 @@ public class DbHelper extends SQLiteOpenHelper implements SqlCreatorInterFace {
 
     SqlCreator sqlCreator = null;
     private void initLocalDB() {
+        TableHelper.db = getDb();
         sqlCreator = new QDSqlCreator(this);
 
         //如果数据库不存在则创建
@@ -248,6 +249,16 @@ public class DbHelper extends SQLiteOpenHelper implements SqlCreatorInterFace {
     }
 
     @Override
+    public <T> T modify(T model) {
+        return sqlCreator.modify(model);
+    }
+
+    @Override
+    public boolean modifyArray(List models) {
+        return sqlCreator.modifyArray(models);
+    }
+
+    @Override
     public <T> T findOne(T model) {
         return sqlCreator.findOne(model);
     }
@@ -299,5 +310,12 @@ public class DbHelper extends SQLiteOpenHelper implements SqlCreatorInterFace {
         if (tableCreateSql != null && tableCreateSql.contains(fieldName))
             return true;
         return false;
+    }
+
+    public long getLastIndex(){
+        //获取索引
+        Cursor cursor = getDb().rawQuery("select LAST_INSERT_ROWID() ", null);
+        cursor.moveToFirst();
+        return cursor.getLong(0);
     }
 }

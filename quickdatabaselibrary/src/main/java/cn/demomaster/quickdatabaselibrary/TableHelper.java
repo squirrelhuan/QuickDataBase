@@ -97,12 +97,7 @@ public class TableHelper {
             if (entry.getValueObj() != null) {
                 if(!entry.getSqlObj().constraints().autoincrement()) {
                     keyStr.append((isFirst ? "" : ",") + "\"" + entry.getColumnName() + "\"");
-                    String value1 = "";
-                    if (entry.getField().getType() == int.class) {
-                        value1 = entry.getValueObj() + "";
-                    } else if (entry.getField().getType() == String.class) {
-                        value1 = "\"" + entry.getValueObj() + "\"";
-                    }
+                    String value1 = entry.getValueSql();
                     valueStr.append((isFirst ? "" : ",") + value1);
                     isFirst = false;
                 }
@@ -124,12 +119,7 @@ public class TableHelper {
                     if (whereStr == null) {
                         whereStr = "";
                     }
-                    String valueStr = "";
-                    if (tableColumn.getField().getType() == int.class) {
-                        valueStr = tableColumn.getValueObj() + "";
-                    } else if (tableColumn.getField().getType() == String.class) {
-                        valueStr = "\"" + tableColumn.getValueObj() + "\"";
-                    }
+                    String valueStr = tableColumn.getValueSql();
                     whereStr += (isfirst ? "" : " and ") + tableColumn.getColumnName() + "=" + valueStr;
                     isfirst = false;
                 }
