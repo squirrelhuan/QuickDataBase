@@ -70,10 +70,22 @@ public class User {
     }
 }
 ```
-插入数据
+### 插入数据
 ```
  User user = new User();
  user.setName("张三");
  user.setAge(18);
  dbHelper.insert(user);
 ```
+### 批量插入
+```
+List<Member> members = new ArrayList<>();
+for (int i = 1; i <= 10; i++) {
+    Member member1 = new Member();
+    member1.setAge(i);
+    member1.setName("M_" + i);
+    members.add(member1);
+}
+dbHelper.insertArray(members);
+```
+
