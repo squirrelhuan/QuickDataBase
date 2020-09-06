@@ -105,17 +105,26 @@ member.setName("sb");
 member.setAge(18);
 dbHelper.modify(member);
 ```
-### 条件查找（列表）
+### 查找（列表）
 ```
 Member member1 = new Member();
 member1.setId(1);
 List<Member> members = dbHelper.findArray(member1);
 ```
-### 条件查找（单条）
+### 查找（单条）
 ```
 User user_t = new User();
 user_t.setId(3);
 User user2 = dbHelper.findOne(user_t);
+```
+### 条件查找（列表）
+```
+List<Member> members = new ArrayList<>();
+members = dbHelper.findArray("select * from member", Member.class);
+```
+### 条件查找（单条）
+```
+Member member = dbHelper.findOne("select * from member", Member.class);
 ```
 
 
