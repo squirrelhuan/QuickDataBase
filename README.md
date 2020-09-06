@@ -88,4 +88,34 @@ for (int i = 1; i <= 10; i++) {
 }
 dbHelper.insertArray(members);
 ```
+### 删除数据
+```
+User user_d = new User();
+user_d.setId(2);
+dbHelper.delete(user_d);
+```
+### 删除全部
+```
+dbHelper.deleteAll(Member.class);
+```
+### 修改数据
+```
+Member member = members.get(0);
+member.setName("sb");
+member.setAge(18);
+dbHelper.modify(member);
+```
+### 条件查找（列表）
+```
+Member member1 = new Member();
+member1.setId(1);
+List<Member> members = dbHelper.findArray(member1);
+```
+### 条件查找（单条）
+```
+User user_t = new User();
+user_t.setId(3);
+User user2 = dbHelper.findOne(user_t);
+```
+
 
