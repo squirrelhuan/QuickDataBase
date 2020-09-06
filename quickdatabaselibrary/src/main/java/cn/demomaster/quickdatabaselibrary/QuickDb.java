@@ -37,7 +37,7 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
 
     /**
      * @param context
-     * @param dataBaseName
+     * @param dataBaseName //在data/data/下生成对应的db文件
      * @param assetsDataBasePath 资源文件中的全路径名
      * @param factory
      * @param version
@@ -276,10 +276,6 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
     @Override
     public <T> List<T> findArray(String sql, Class<T> clazz) {
         return sqlCreator.findArray(sql,clazz);
-    }
-
-    public void insertList(List models) throws Exception {
-        sqlCreator.insertArray(models);
     }
 
     public static interface DbHelperInterface {

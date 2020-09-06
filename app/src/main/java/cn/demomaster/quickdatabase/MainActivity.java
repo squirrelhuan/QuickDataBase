@@ -14,9 +14,6 @@ import java.util.Random;
 import cn.demomaster.quickdatabase.model.Member;
 import cn.demomaster.quickdatabase.model.User;
 import cn.demomaster.quickdatabaselibrary.QuickDb;
-import cn.demomaster.quickdatabaselibrary.TableHelper;
-
-import static cn.demomaster.quickdatabaselibrary.TableHelper.generateTableSql;
 
 public class MainActivity extends AppCompatActivity implements QuickDb.DbHelperInterface {
 
@@ -32,7 +29,8 @@ public class MainActivity extends AppCompatActivity implements QuickDb.DbHelperI
         tv_console = findViewById(R.id.tv_console);
 
         dbHelper = new QuickDb(this, "quick_db.db", "quick_db.db", null, 10, this);
-
+        //quick_db1.db 在data/data/下生成对应的db文件
+        //quick_db2.db 在assets下的db文件
         //生成表
         creatTable();
     }
@@ -56,34 +54,21 @@ public class MainActivity extends AppCompatActivity implements QuickDb.DbHelperI
 
     public void findList1(View view) {
         List<Member> members = new ArrayList<>();
-        try {
-            members = dbHelper.findArray("select * from member", Member.class);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        members = dbHelper.findArray("select * from member", Member.class);
         print("总记录数：" + (members == null ? "0" : members.size()));
     }
 
     private void findList2() {
         Member member1 = new Member();
         member1.setId(1);
-        List<Member> members = null;
-        try {
-            members = dbHelper.findArray(member1);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        List<Member> members = dbHelper.findArray(member1);
         print("结果数量：" + (members == null ? "0" : members.size()));
     }
 
     private void deleteSingle() {
         User user_d = new User();
         user_d.setId(2);
-        try {
-            dbHelper.delete(user_d);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        dbHelper.delete(user_d);
     }
 
     public void insert2(View view) {
@@ -94,11 +79,7 @@ public class MainActivity extends AppCompatActivity implements QuickDb.DbHelperI
             member1.setName("M_" + i);
             members.add(member1);
         }
-        try {
-            dbHelper.insertList(members);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        dbHelper.insertArray(members);
     }
 
     public void insert1(View view) {
@@ -107,6 +88,11 @@ public class MainActivity extends AppCompatActivity implements QuickDb.DbHelperI
         member.setAge(new Random().nextInt());
         dbHelper.insert(member);
         print("单条数据插入:" + member.toString());
+
+       /* User user = new User();
+        user.setName("张三");
+        user.setAge(18);
+        dbHelper.insert(user);*/
     }
 
     private void creatTable() {
@@ -148,12 +134,8 @@ public class MainActivity extends AppCompatActivity implements QuickDb.DbHelperI
     }
 
     public void deleteAll(View view) {
-        try {
-            dbHelper.deleteAll(Member.class);
-            print("删除全部记录");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        dbHelper.deleteAll(Member.class);
+        print("删除全部记录");
     }
 
     public void modify01(View view) {
