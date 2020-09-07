@@ -190,7 +190,6 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
 
     /**
      * 检查某表列是否存在
-     *
      * @param db
      * @param tableName  表名
      * @param columnName 列名
