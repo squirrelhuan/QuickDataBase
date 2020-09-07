@@ -2,7 +2,6 @@ package cn.demomaster.quickdatabaselibrary;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
 
 import java.lang.annotation.Annotation;
@@ -18,8 +17,8 @@ import cn.demomaster.quickdatabaselibrary.model.TableColumn;
 import cn.demomaster.quickdatabaselibrary.model.TableInfo;
 
 public class TableHelper {
-    static QuickDb mQuickDb;
-    public  TableHelper(QuickDb quickDb) {
+    static QuickDbHelper mQuickDb;
+    public  TableHelper(QuickDbHelper quickDb) {
         mQuickDb = quickDb;
     }
 
@@ -90,8 +89,7 @@ public class TableHelper {
         }
         TableInfo tableInfo = getTableInfo(obj, obj.getClass());
         /*INSERT INTO TABLE_NAME (column1, column2, column3,...columnN) VALUES (value1, value2, value3,...valueN);*/
-        StringBuilder insertCommand = new StringBuilder(
-                "INSERT INTO " + tableInfo.getTableName() + " ");
+        StringBuilder insertCommand = new StringBuilder("INSERT INTO " + tableInfo.getTableName() + " ");
 
         StringBuilder keyStr = new StringBuilder("(");
         StringBuilder valueStr = new StringBuilder(" VALUES(");
@@ -99,10 +97,12 @@ public class TableHelper {
         for (TableColumn entry : tableInfo.getTableColumns()) {
             if (entry.getValueObj() != null) {
                 if(!entry.getSqlObj().constraints().autoincrement()) {
-                    keyStr.append((isFirst ? "" : ",") + "\"" + entry.getColumnName() + "\"");
                     String value1 = entry.getValueSql();
-                    valueStr.append((isFirst ? "" : ",") + value1);
-                    isFirst = false;
+                    if(!TextUtils.isEmpty(value1)) {
+                        keyStr.append((isFirst ? "" : ",") + "\"" + entry.getColumnName() + "\"");
+                        valueStr.append((isFirst ? "" : ",") + value1);
+                        isFirst = false;
+                    }
                 }
             }
         }
@@ -113,6 +113,12 @@ public class TableHelper {
         return insertCommand.toString();
     }
 
+    /**
+     * 生成条件查询语句
+     * @param tableInfo
+     * @param <T>
+     * @return
+     */
     public static <T> String generateWhereParams(TableInfo tableInfo) {
         if (tableInfo != null) {
             boolean isfirst = true;
@@ -123,8 +129,10 @@ public class TableHelper {
                         whereStr = "";
                     }
                     String valueStr = tableColumn.getValueSql();
-                    whereStr += (isfirst ? "" : " and ") + tableColumn.getColumnName() + "=" + valueStr;
-                    isfirst = false;
+                    if(!TextUtils.isEmpty(valueStr)) {
+                        whereStr += (isfirst ? "" : " and ") + tableColumn.getColumnName() + "=" + valueStr;
+                        isfirst = false;
+                    }
                 }
             }
             return whereStr;
@@ -219,57 +227,23 @@ public class TableHelper {
 
     public static <T> List<T> generateModels(TableInfo tableInfo, String[] params, String whereParams, Class<T> clazz, boolean isArray) {
         Cursor cursor = mQuickDb.getDb().query(tableInfo.getTableName(), params, whereParams, null, null, null, null);
-        List<T> list = new ArrayList<>();
-        W:
-        while (cursor.moveToNext()) {
-            try {
-                T model = (T) clazz.getConstructor().newInstance();
-                for (Field fd : model.getClass().getDeclaredFields()) {
-                    Annotation[] anns = fd.getDeclaredAnnotations();
-                    if (anns.length <= 0) {
-                        continue;
-                    }
-                    Object columnValue = null;
-                    String columnName = null;
-                    boolean accessFlag = fd.isAccessible();
-                    fd.setAccessible(true);
-                    for (Annotation annotation : anns) {
-                        if (annotation instanceof SQLObj) {
-                            SQLObj sqlObj = (SQLObj) annotation;
-                            if (sqlObj.name().length() < 1) {
-                                columnName = fd.getName();
-                            } else {
-                                columnName = sqlObj.name();
-                            }
-                            if (fd.getType() == int.class) {
-                                columnValue = cursor.getInt(cursor.getColumnIndex(columnName));
-                            } else if (fd.getType() == String.class) {
-                                columnValue = cursor.getString(cursor.getColumnIndex(columnName));
-                            }
-                            fd.set(model, columnValue);
-                        }
-                    }
-                    fd.setAccessible(accessFlag);
-                }
-
-                list.add(model);
-                if (!isArray) {
-                    break W;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                continue;
-            }
-        }
-        if (cursor != null) {
-            cursor.close();
-        }
-        return list;
+        return generateModelsByCursor(cursor, clazz, isArray);
     }
 
     public static <T> List<T> generateModels2(String sql, Class<T> clazz, boolean isArray) {
-        //Cursor cursor = db.query(tableInfo.getTableName(), params, whereParams, null, null, null, null);
         Cursor cursor = mQuickDb.execSQL(sql);
+        return generateModelsByCursor(cursor, clazz, isArray);
+    }
+
+    /**
+     * 根据查询游标 生成实体类
+     * @param cursor sql执行结果
+     * @param clazz 目标实体类
+     * @param isArray 返回值是否是集合
+     * @param <T>
+     * @return
+     */
+    public static <T> List<T> generateModelsByCursor(Cursor cursor, Class<T> clazz, boolean isArray) {
         List<T> list = new ArrayList<>();
         W:
         while (cursor.moveToNext()) {
@@ -292,12 +266,17 @@ public class TableHelper {
                             } else {
                                 columnName = sqlObj.name();
                             }
-                            if (fd.getType() == int.class) {
-                                columnValue = cursor.getInt(cursor.getColumnIndex(columnName));
-                            } else if (fd.getType() == String.class) {
-                                columnValue = cursor.getString(cursor.getColumnIndex(columnName));
+                            int columnCursorIndex = cursor.getColumnIndex(columnName);
+                            if(columnCursorIndex!=-1) {
+                                if (fd.getType() == int.class) {
+                                    columnValue = cursor.getInt(columnCursorIndex);
+                                } else if (fd.getType() == String.class) {
+                                    columnValue = cursor.getString(columnCursorIndex);
+                                }
+                                if(columnValue!=null) {
+                                    fd.set(model, columnValue);
+                                }
                             }
-                            fd.set(model, columnValue);
                         }
                     }
                     fd.setAccessible(accessFlag);
@@ -330,18 +309,24 @@ public class TableHelper {
     /**
      * 生成查询语句
      */
-    public String generatQueryString(String tableName, Map<String, String> paramsMap) {
+    public String generatQueryString(String tableName, Map<String, Object> paramsMap) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("SELECT * FROM " + tableName + " WHERE ");
-        boolean b = false;
+        boolean b = true;
         for (Map.Entry entry : paramsMap.entrySet()) {
-            stringBuilder.append((b == false ? " " : " and ") + entry.getKey() + "=" + entry.getValue());
+            Object valueObj = entry.getValue();
+            String valueStr = null;
+            if(valueObj instanceof Number){
+                valueStr = valueObj+"";
+            }else if(valueObj instanceof String){
+                valueStr = "\""+valueObj+"\"";
+            }
+            if(!TextUtils.isEmpty(valueStr)) {
+                stringBuilder.append((b ? " " : " and ") + entry.getKey() + "=" + valueStr);
+                b = false;
+            }
         }
 
-        if (b) {
-            return stringBuilder.toString();
-        } else {
-            return null;
-        }
+        return (!b)?stringBuilder.toString():null;
     }
 }

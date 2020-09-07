@@ -16,6 +16,7 @@ import java.io.OutputStream;
 import java.util.List;
 
 import cn.demomaster.quickdatabaselibrary.listener.UpgradeInterface;
+import cn.demomaster.quickdatabaselibrary.model.SqliteTable;
 import cn.demomaster.quickdatabaselibrary.sql.QDSqlCreator;
 import cn.demomaster.quickdatabaselibrary.sql.SqlCreator;
 import cn.demomaster.quickdatabaselibrary.sql.SqlCreatorInterFace;
@@ -25,7 +26,7 @@ import cn.demomaster.quickdatabaselibrary.sql.SqlCreatorInterFace;
  * @date 2018/11/19.
  * description：
  */
-public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
+public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFace {
     private Context mContext;
     private SQLiteDatabase db;
 
@@ -44,7 +45,7 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
      * @param version
      * @param upgradeInterface
      */
-    public QuickDb(Context context, String dataBaseName, String assetsDataBasePath, SQLiteDatabase.CursorFactory factory, int version, UpgradeInterface upgradeInterface) {
+    public QuickDbHelper(Context context, String dataBaseName, String assetsDataBasePath, SQLiteDatabase.CursorFactory factory, int version, UpgradeInterface upgradeInterface) {
         super(context, dataBaseName, factory, version);
         this.upgradeInterface = upgradeInterface;
         this.mContext = context.getApplicationContext();
@@ -53,7 +54,7 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
         initLocalDB();//初始化本地的db文件
     }
 
-    public QuickDb(Context context, String dataBaseName, String assetsDataBasePath, SQLiteDatabase.CursorFactory factory, int version) {
+    public QuickDbHelper(Context context, String dataBaseName, String assetsDataBasePath, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, dataBaseName, factory, version);
         this.mContext = context.getApplicationContext();
         this.DATABASE_NAME = dataBaseName;
@@ -62,7 +63,7 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
     }
 
     //必须要有构造函数
-    public QuickDb(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, UpgradeInterface upgradeInterface) {
+    public QuickDbHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, UpgradeInterface upgradeInterface) {
         super(context, name, factory, version);
         this.upgradeInterface = upgradeInterface;
         this.mContext = context.getApplicationContext();
@@ -71,18 +72,18 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
     }
 
     //必须要有构造函数
-    public QuickDb(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
+    public QuickDbHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
         this.mContext = context.getApplicationContext();
         this.DATABASE_NAME = name;
         initLocalDB();//初始化本地的db文件
     }
 
-    public QuickDb(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, DatabaseErrorHandler errorHandler) {
+    public QuickDbHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, DatabaseErrorHandler errorHandler) {
         super(context, name, factory, version, errorHandler);
     }
 
-    private static final String TAG = "TagSQLite";
+    private static final String TAG = "QuickSQLite";
 
     //当更新数据库的时候执行该方法
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -273,6 +274,15 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
     @Override
     public <T> List<T> findArray(String sql, Class<T> clazz) {
         return sqlCreator.findArray(sql,clazz);
+    }
+
+    /**
+     * 获取数据库中所有表
+     * @return
+     */
+    public List<SqliteTable> getTables(){
+       List<SqliteTable> tables= sqlCreator.findArray("select * from sqlite_master where type=\"table\";", SqliteTable.class);
+       return tables;
     }
 
     /**

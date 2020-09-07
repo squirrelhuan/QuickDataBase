@@ -2,10 +2,7 @@ package cn.demomaster.quickdatabase;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.database.Cursor;
-import android.database.sqlite.SQLiteCursorDriver;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteQueryBuilder;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -16,14 +13,14 @@ import java.util.Random;
 
 import cn.demomaster.quickdatabase.model.Member;
 import cn.demomaster.quickdatabase.model.User;
-import cn.demomaster.quickdatabaselibrary.QuickDb;
+import cn.demomaster.quickdatabaselibrary.QuickDbHelper;
 import cn.demomaster.quickdatabaselibrary.listener.UpgradeInterface;
 
 public class MainActivity extends AppCompatActivity implements UpgradeInterface {
 
     TextView tv_console;
 
-    QuickDb dbHelper;
+    QuickDbHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,9 +29,12 @@ public class MainActivity extends AppCompatActivity implements UpgradeInterface 
 
         tv_console = findViewById(R.id.tv_console);
 
-        dbHelper = new QuickDb(this, "quick_db.db", "quick_db.db", null, 10, this);
+        dbHelper = new QuickDbHelper(this, "quick_db.db", "quick_db.db", null, 10, this);
         //quick_db1.db 在data/data/下生成对应的db文件
         //quick_db2.db 在assets下的db文件
+
+        dbHelper.getTables();
+
         //生成表
         creatTable();
     }
