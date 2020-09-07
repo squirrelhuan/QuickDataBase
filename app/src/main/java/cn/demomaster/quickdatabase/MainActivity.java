@@ -156,6 +156,7 @@ public class MainActivity extends AppCompatActivity implements UpgradeInterface 
         Member member = members.get(0);
         member.setName("sb");
         member.setAge(18);
+        member.setDescription("小青蛙，呱呱呱");
         dbHelper.modify(member);
         long id = dbHelper.getLastIndex();
         print("修改完成id=" + id);

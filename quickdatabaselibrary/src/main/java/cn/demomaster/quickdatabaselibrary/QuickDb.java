@@ -53,6 +53,14 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
         initLocalDB();//初始化本地的db文件
     }
 
+    public QuickDb(Context context, String dataBaseName, String assetsDataBasePath, SQLiteDatabase.CursorFactory factory, int version) {
+        super(context, dataBaseName, factory, version);
+        this.mContext = context.getApplicationContext();
+        this.DATABASE_NAME = dataBaseName;
+        this.mAssetsDataBasePath = assetsDataBasePath;
+        initLocalDB();//初始化本地的db文件
+    }
+
     //必须要有构造函数
     public QuickDb(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, UpgradeInterface upgradeInterface) {
         super(context, name, factory, version);
@@ -76,15 +84,6 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
 
     private static final String TAG = "TagSQLite";
 
-    //当第一次创建数据库的时候，调用该方法
-    public void onCreate(SQLiteDatabase db) {
-        // String sql = "create table stu_table(id int,sname varchar(20),sage int,ssex varchar(10))";
-        //输出创建数据库的日志信息
-        // QDLogger.i(TAG, "create Database------------->");
-        //execSQL函数用于执行SQL语句
-        // db.execSQL(sql);
-    }
-
     //当更新数据库的时候执行该方法
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         //输出更新数据库的日志信息
@@ -96,8 +95,6 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
 
     private static String DATABASE_NAME = ".db";
     private static String mAssetsDataBasePath = null;
-    private static final int DATABASE_VERSION = 1;
-    // private static final String SP_KEY_DB_VER = "db_ver";
 
     SqlCreator sqlCreator = null;
     TableHelper tableHelper = null;
@@ -109,21 +106,6 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
         if (!databaseExists()) {
             createDatabaseFile();
         }
-
-        if (databaseExists()) {
-            SQLiteDatabase db = this.getReadableDatabase();
-            if (db == null) {//如果数据库不存在
-
-            } else {
-                int dbVersion = db.getVersion();// prefs.getInt(SP_KEY_DB_VER, 1);
-            }
-            /*if (DATABASE_VERSION != dbVersion) {
-                File dbFile = mContext.getDatabasePath(DATABASE_NAME);
-                if (!dbFile.delete()) {
-                    //QDLogger.println(TAG, "Unable to update database");
-                }
-            }*/
-        }
     }
 
     private boolean databaseExists() {
@@ -132,7 +114,7 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
     }
 
     /**
-     * Creates database by copying it from assets directory.
+     * 生成数据库文件
      */
     private void createDatabaseFile() {
         String parentPath = mContext.getDatabasePath(DATABASE_NAME).getParent();
@@ -200,6 +182,11 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
         return db;
     }
 
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+
+    }
+
     /**
      * 检查某表列是否存在
      *
@@ -218,7 +205,7 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
                     , null);
             result = cursor != null && cursor.getColumnIndex(columnName) != -1;
         } catch (Exception e) {
-            Log.e(TAG, "checkColumnExists1..." + e.getMessage());
+            Log.e(TAG, "checkColumnExists1：" + e.getMessage());
         } finally {
             if (null != cursor && !cursor.isClosed()) {
                 cursor.close();
@@ -232,10 +219,10 @@ public class QuickDb extends SQLiteOpenHelper implements SqlCreatorInterFace {
         this.upgradeInterface = upgradeInterface;
     }
 
-    public void createTable(Class clazz) throws Exception {
+    public String createTable(Class clazz) throws Exception {
         String sql = TableHelper.generateTableSql(clazz);
-        System.out.println(sql);
         getDb().execSQL(sql);
+        return sql;
     }
 
     @Override
