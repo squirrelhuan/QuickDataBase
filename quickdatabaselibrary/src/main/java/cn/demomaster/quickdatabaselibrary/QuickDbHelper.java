@@ -63,24 +63,30 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
     }
 
     //必须要有构造函数
-    public QuickDbHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, UpgradeInterface upgradeInterface) {
-        super(context, name, factory, version);
+    public QuickDbHelper(Context context, String dataBaseName, SQLiteDatabase.CursorFactory factory, int version, UpgradeInterface upgradeInterface) {
+        super(context, dataBaseName, factory, version);
         this.upgradeInterface = upgradeInterface;
         this.mContext = context.getApplicationContext();
-        this.DATABASE_NAME = name;
+        this.DATABASE_NAME = dataBaseName;
+        this.mAssetsDataBasePath = dataBaseName;
         initLocalDB();//初始化本地的db文件
     }
 
     //必须要有构造函数
-    public QuickDbHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
-        super(context, name, factory, version);
+    public QuickDbHelper(Context context, String dataBaseName, SQLiteDatabase.CursorFactory factory, int version) {
+        super(context, dataBaseName, factory, version);
         this.mContext = context.getApplicationContext();
-        this.DATABASE_NAME = name;
+        this.DATABASE_NAME = dataBaseName;
+        this.mAssetsDataBasePath = dataBaseName;
         initLocalDB();//初始化本地的db文件
     }
 
-    public QuickDbHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, DatabaseErrorHandler errorHandler) {
-        super(context, name, factory, version, errorHandler);
+    public QuickDbHelper(Context context, String dataBaseName, SQLiteDatabase.CursorFactory factory, int version, DatabaseErrorHandler errorHandler) {
+        super(context, dataBaseName, factory, version, errorHandler);
+        this.mContext = context.getApplicationContext();
+        this.DATABASE_NAME = dataBaseName;
+        this.mAssetsDataBasePath = dataBaseName;
+        initLocalDB();//初始化本地的db文件
     }
 
     private static final String TAG = "QuickSQLite";
