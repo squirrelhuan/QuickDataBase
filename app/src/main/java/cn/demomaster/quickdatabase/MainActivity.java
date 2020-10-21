@@ -1,18 +1,27 @@
 package cn.demomaster.quickdatabase;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import cn.demomaster.quickdatabase.adapter.TabAttrs;
+import cn.demomaster.quickdatabase.adapter.TableAdapter;
 import cn.demomaster.quickdatabase.model.Member;
 import cn.demomaster.quickdatabase.model.User;
+import cn.demomaster.quickdatabase.view.TableView;
 import cn.demomaster.quickdatabaselibrary.QuickDbHelper;
 import cn.demomaster.quickdatabaselibrary.listener.UpgradeInterface;
 
@@ -21,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements UpgradeInterface 
     TextView tv_console;
 
     QuickDbHelper dbHelper;
-
+    TableView tableView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,6 +46,24 @@ public class MainActivity extends AppCompatActivity implements UpgradeInterface 
 
         //生成表
         creatTable();
+
+        initTableView();
+    }
+
+    private void initTableView() {
+        tableView = findViewById(R.id.tableView);
+        String[] titles =new String[]{"id","name","age","sex","nickname","header"};
+
+        tableView.setTitles(titles);
+        List<String[]> stringList = new ArrayList<>();
+        for(int i=0;i<500;i++){
+            String[] strings = new String[titles.length];
+            for(int j=0;j<strings.length;j++) {
+                strings[j]=i+"-"+titles[j]+"";
+            }
+            stringList.add(strings);
+        }
+        tableView.setData(stringList);
     }
 
     public void findOne1(View view) {
@@ -60,6 +87,24 @@ public class MainActivity extends AppCompatActivity implements UpgradeInterface 
         List<Member> members = new ArrayList<>();
         members = dbHelper.findArray("select * from member", Member.class);
         print("总记录数：" + (members == null ? "0" : members.size()));
+
+
+       /* String[] titles =new String[]{"id","name","age","sex"};
+
+        tableView.setTitles(titles);
+        List<String[]> stringList = new ArrayList<>();
+        for(int i=0;i<members.size();i++){
+            String[] strings = new String[titles.length];
+
+            strings[0]=members.get(i).getId()+"";
+            strings[1]=members.get(i).getName()+"";
+            strings[2]=members.get(i).getAge()+"";
+            strings[3]=members.get(i).getSex()+"";
+            stringList.add(strings);
+        }
+        tableView.setData(stringList);*/
+
+        tableView.setData(members);
     }
 
     public void findList2(View view) {
