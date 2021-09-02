@@ -106,25 +106,6 @@
         <cn.demomaster.quickdatabase.view.TableView
             android:id="@+id/tableView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:overScrollMode="never">
-
-        </cn.demomaster.quickdatabase.view.TableView>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-            <TableRow
-                android:id="@+id/tabRow"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-            </TableRow>
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:overScrollMode="never"/>
-        </LinearLayout>
+            android:layout_height="match_parent"/>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -2,9 +2,6 @@ package cn.demomaster.quickdatabaselibrary.sql;
 
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteStatement;
-import android.text.TextUtils;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -47,7 +44,7 @@ public class QDSqlCreator2 {
         }
     }
 
-    public void insertList3(List objectList) throws Exception {
+    public void insertList3(List objectList) {
         long startTime = System.currentTimeMillis();
         SQLiteDatabase db = null;
         try {

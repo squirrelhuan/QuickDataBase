@@ -29,6 +29,7 @@ public class QDSqlCreator extends SqlCreator {
         return false;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean insertArray(List models) {
         SQLiteDatabase db = getDb();
@@ -37,21 +38,24 @@ public class QDSqlCreator extends SqlCreator {
                 return false;
             }
             TableInfo tableInfo = TableHelper.getTableInfo(models.get(0).getClass());
-            String value1 = "(";
-            String value2 = "(";
+            StringBuilder stringBuilder1 = new StringBuilder();
+            stringBuilder1.append("(");
+            StringBuilder stringBuilder2 = new StringBuilder();
+            stringBuilder2.append("(");
             boolean isf1 = true;
             for (int i = 0; i < tableInfo.getTableColumns().size(); i++) {
                 TableColumn tableColumn = tableInfo.getTableColumns().get(i);
                 if (!tableColumn.getSqlObj().constraints().autoincrement()) {
-                    value1 += (isf1 ? "" : ",") + tableColumn.getColumnName();
-                    value2 += (isf1 ? "?" : ",?");
+                    stringBuilder1.append ((isf1 ? "" : ","))
+                    .append(tableColumn.getColumnName());
+                    stringBuilder2.append(isf1 ? "?" : ",?");
                     isf1 = false;
                 }
             }
-            value1 += ")";
-            value2 += ")";
+            stringBuilder1.append(")");
+            stringBuilder2.append(")");
 
-            String sql = "insert into " + tableInfo.getTableName() + value1 + "values" + value2;
+            String sql = "insert into " + tableInfo.getTableName() + stringBuilder1.toString() + "values" + stringBuilder2.toString();
             SQLiteStatement stat = db.compileStatement(sql);
             db.beginTransaction();
             for (int j = 0; j < models.size(); j++) {
@@ -83,11 +87,42 @@ public class QDSqlCreator extends SqlCreator {
     }
 
     @Override
+    public boolean delete(String tableName,ContentValues contentValues) {
+        try {
+               StringBuilder stringBuilder = new StringBuilder();
+               if(contentValues!=null&&contentValues.size()>0) {
+                   stringBuilder.append("delete from ")
+                           .append(tableName)
+               .append(" where ");
+                   boolean b = true;
+                   for (String key : contentValues.keySet()) {
+                       stringBuilder.append((b ? " " : " and "))
+                   .append(key )
+                   .append("=" )
+                   .append(contentValues.get(key));
+                       b = false;
+                   }
+                   System.out.println("sql="+stringBuilder.toString());
+                   getDb().execSQL(stringBuilder.toString());
+               }else {
+                   System.out.println("delete 条件语句限制请使用execDeleteSQL");
+                   return false;
+               }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+    @SuppressWarnings("unchecked")
     public boolean delete(Object model) {
         TableInfo tableInfo = TableHelper.getTableInfo(model);
         try {
             if (tableInfo != null && tableInfo.getTableColumns() != null && tableInfo.getTableColumns().size() > 0) {
-                String sql = "delete from " + tableInfo.getTableName() + " where ";
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append("delete from ")
+            .append(tableInfo.getTableName())
+            .append(" where ");
                 boolean b = true;
                 for (TableColumn tableColumn : tableInfo.getTableColumns()) {
                     if (tableColumn.getValueObj() != null) {
@@ -96,11 +131,15 @@ public class QDSqlCreator extends SqlCreator {
                         field.setAccessible(true);
                         String valueStr = tableColumn.getValueSql();
                         //field.setAccessible(accessFlag);
-                        sql += (b ? " " : " and ") + tableColumn.getColumnName() + "=" + valueStr;
+                        stringBuilder.append ((b ? " " : " and ") )
+                    .append(tableColumn.getColumnName() )
+                    .append("=" )
+                    .append(valueStr);
                         b = false;
                     }
                 }
-                getDb().execSQL(sql);
+                System.out.println("sql="+stringBuilder.toString());
+                getDb().execSQL(stringBuilder.toString());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -115,27 +154,32 @@ public class QDSqlCreator extends SqlCreator {
         getDb().execSQL(sql);
         return true;
     }
-
+    @SuppressWarnings("unchecked")
     @Override
     public <T> T modify(T model) {
         TableInfo tableInfo = TableHelper.getTableInfo(model);
         try {
-            String value1 = "";
-            String value2 = " where ";
+            StringBuilder stringBuilder1 = new StringBuilder();
+            StringBuilder stringBuilder2 = new StringBuilder();
+            stringBuilder2.append(" where ");
             boolean isf1 = true;
             for (int i = 0; i < tableInfo.getTableColumns().size(); i++) {
                 TableColumn tableColumn = tableInfo.getTableColumns().get(i);
                 if (!tableColumn.getSqlObj().constraints().autoincrement()) {
-                    value1 += (isf1 ? "" : ",") + tableColumn.getColumnName()+"="+tableColumn.getValueSql();
+                    stringBuilder1.append ((isf1 ? "" : ",") )
+                .append(tableColumn.getColumnName())
+                .append("=")
+                .append(tableColumn.getValueSql());
                     isf1 = false;
                 }
                 if(tableColumn.getSqlObj().constraints().primaryKey()){
-                    value2+=tableColumn.getColumnName()+"="+tableColumn.getValueSql();
+                    stringBuilder2.append(tableColumn.getColumnName())
+                .append("=")
+                .append(tableColumn.getValueSql());
                 }
             }
 
-            String sql = "update " + tableInfo.getTableName() +" set "+ value1;
-            sql+= value2;
+            String sql = "update " + tableInfo.getTableName() +" set "+ stringBuilder1.toString()+ stringBuilder2.toString();
             getDb().execSQL(sql);
         } catch (Exception e) {
             e.printStackTrace();
@@ -179,10 +223,11 @@ public class QDSqlCreator extends SqlCreator {
 
     @Override
     public <T> List<T> findArray(String sql, Class<T> clazz) {
-        TableInfo tableInfo = TableHelper.getTableInfo(clazz);
-        String[] params = new String[]{"*"};
-        String whereParams = TableHelper.generateWhereParams(tableInfo);
-        return TableHelper.generateModels(tableInfo, params, whereParams, clazz, true);
+        //TableInfo tableInfo = TableHelper.getTableInfo(clazz);
+        //String[] params = new String[]{"*"};
+        //String whereParams = TableHelper.generateWhereParams(tableInfo);
+       // return TableHelper.generateModels(tableInfo, params, sql, clazz, true);
+        return TableHelper.generateModels2(sql, clazz, true);
     }
 
 

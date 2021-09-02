@@ -1,5 +1,6 @@
 package cn.demomaster.quickdatabaselibrary;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseErrorHandler;
@@ -17,6 +18,7 @@ import java.util.List;
 
 import cn.demomaster.quickdatabaselibrary.listener.UpgradeInterface;
 import cn.demomaster.quickdatabaselibrary.model.SqliteTable;
+import cn.demomaster.quickdatabaselibrary.model.TableColumn;
 import cn.demomaster.quickdatabaselibrary.sql.QDSqlCreator;
 import cn.demomaster.quickdatabaselibrary.sql.SqlCreator;
 import cn.demomaster.quickdatabaselibrary.sql.SqlCreatorInterFace;
@@ -31,15 +33,13 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
     private SQLiteDatabase db;
 
     public SQLiteDatabase getDb() {
-        if (db == null) {
-            getReadableDatabase();
-        }
+        db = getReadableDatabase();
         return db;
     }
 
     /**
      * @param context
-     * @param dataBaseName //在data/data/下生成对应的db文件
+     * @param dataBaseName       //在data/data/下生成对应的db文件
      * @param assetsDataBasePath 资源文件中的全路径名
      * @param factory
      * @param version
@@ -49,16 +49,16 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
         super(context, dataBaseName, factory, version);
         this.upgradeInterface = upgradeInterface;
         this.mContext = context.getApplicationContext();
-        this.DATABASE_NAME = dataBaseName;
-        this.mAssetsDataBasePath = assetsDataBasePath;
+        DATABASE_NAME = dataBaseName;
+        mAssetsDataBasePath = assetsDataBasePath;
         initLocalDB();//初始化本地的db文件
     }
 
     public QuickDbHelper(Context context, String dataBaseName, String assetsDataBasePath, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, dataBaseName, factory, version);
         this.mContext = context.getApplicationContext();
-        this.DATABASE_NAME = dataBaseName;
-        this.mAssetsDataBasePath = assetsDataBasePath;
+        DATABASE_NAME = dataBaseName;
+        mAssetsDataBasePath = assetsDataBasePath;
         initLocalDB();//初始化本地的db文件
     }
 
@@ -67,8 +67,8 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
         super(context, dataBaseName, factory, version);
         this.upgradeInterface = upgradeInterface;
         this.mContext = context.getApplicationContext();
-        this.DATABASE_NAME = dataBaseName;
-        this.mAssetsDataBasePath = dataBaseName;
+        DATABASE_NAME = dataBaseName;
+        mAssetsDataBasePath = dataBaseName;
         initLocalDB();//初始化本地的db文件
     }
 
@@ -76,16 +76,16 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
     public QuickDbHelper(Context context, String dataBaseName, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, dataBaseName, factory, version);
         this.mContext = context.getApplicationContext();
-        this.DATABASE_NAME = dataBaseName;
-        this.mAssetsDataBasePath = dataBaseName;
+        DATABASE_NAME = dataBaseName;
+        mAssetsDataBasePath = dataBaseName;
         initLocalDB();//初始化本地的db文件
     }
 
     public QuickDbHelper(Context context, String dataBaseName, SQLiteDatabase.CursorFactory factory, int version, DatabaseErrorHandler errorHandler) {
         super(context, dataBaseName, factory, version, errorHandler);
         this.mContext = context.getApplicationContext();
-        this.DATABASE_NAME = dataBaseName;
-        this.mAssetsDataBasePath = dataBaseName;
+        DATABASE_NAME = dataBaseName;
+        mAssetsDataBasePath = dataBaseName;
         initLocalDB();//初始化本地的db文件
     }
 
@@ -93,6 +93,9 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
 
     //当更新数据库的时候执行该方法
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        //db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+        //onCreate(db);
+        this.db = db;
         //输出更新数据库的日志信息
         //QDLogger.println(TAG, "update Database------------->oldVersion="+oldVersion+",newVersion="+newVersion);
         if (upgradeInterface != null) {
@@ -105,6 +108,7 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
 
     SqlCreator sqlCreator = null;
     TableHelper tableHelper = null;
+
     private void initLocalDB() {
         tableHelper = new TableHelper(this);
         sqlCreator = new QDSqlCreator(this);
@@ -191,11 +195,19 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-
+        /*db.execSQL(
+                "CREATE TABLE " + TABLE_NAME + " (" +
+                        ID_COL + " INTEGER PRIMARY KEY, " +
+                        TEXT_COL + " TEXT, " +
+                        FORMAT_COL + " TEXT, " +
+                        DISPLAY_COL + " TEXT, " +
+                        TIMESTAMP_COL + " INTEGER, " +
+                        DETAILS_COL + " TEXT);");*/
     }
 
     /**
      * 检查某表列是否存在
+     *
      * @param db
      * @param tableName  表名
      * @param columnName 列名
@@ -221,13 +233,33 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
     }
 
     UpgradeInterface upgradeInterface;
+
     public void setUpgradeInterface(UpgradeInterface upgradeInterface) {
         this.upgradeInterface = upgradeInterface;
     }
 
+    /**
+     * 创建表结构
+     *
+     * @param clazz
+     * @return
+     * @throws Exception
+     */
     public String createTable(Class clazz) throws Exception {
         String sql = TableHelper.generateTableSql(clazz);
         getDb().execSQL(sql);
+        return sql;
+    }
+
+    /**
+     * 更新表结构
+     *
+     * @param clazz
+     * @return
+     * @throws Exception
+     */
+    public String updateTable(Class clazz) throws Exception {
+        String sql = TableHelper.upedateTableSql(getDb(), clazz);
         return sql;
     }
 
@@ -242,9 +274,14 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
     }
 
     @Override
+    public boolean delete(String tableName,ContentValues contentValues) {
+        return sqlCreator.delete(tableName,contentValues);
+    }
+/*
+    @Override
     public boolean delete(Object model) {
         return sqlCreator.delete(model);
-    }
+    }*/
 
     @Override
     public <T> boolean deleteAll(Class<T> clazz) {
@@ -268,7 +305,7 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
 
     @Override
     public <T> T findOne(String sql, Class<T> clazz) {
-        return sqlCreator.findOne(sql,clazz);
+        return sqlCreator.findOne(sql, clazz);
     }
 
     @Override
@@ -278,16 +315,17 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
 
     @Override
     public <T> List<T> findArray(String sql, Class<T> clazz) {
-        return sqlCreator.findArray(sql,clazz);
+        return sqlCreator.findArray(sql, clazz);
     }
 
     /**
      * 获取数据库中所有表
+     *
      * @return
      */
-    public List<SqliteTable> getTables(){
-       List<SqliteTable> tables= sqlCreator.findArray("select * from sqlite_master where type=\"table\";", SqliteTable.class);
-       return tables;
+    public List<SqliteTable> getTables() {
+        List<SqliteTable> tables = sqlCreator.findArray("select * from sqlite_master where type=\"table\";", SqliteTable.class);
+        return tables;
     }
 
     /**
@@ -311,28 +349,92 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
             if (c != null)
                 c.close();
         }
-        if (tableCreateSql != null && tableCreateSql.contains(fieldName))
-            return true;
-        return false;
+        return (tableCreateSql != null && tableCreateSql.contains(fieldName));
     }
 
-    public long getLastIndex(){
+    public static boolean checkFieldType(SQLiteDatabase db, String tableName, TableColumn tableColumn) {
+        return checkFieldType(db, tableName, tableColumn.getColumnName(), tableColumn.getDataType());
+    }
+
+    /**
+     * @param db        數據庫
+     * @param tableName 表名
+     * @param fieldName 字段名
+     * @param typeClass 字段類型
+     * @return
+     */
+    public static boolean checkFieldType(SQLiteDatabase db, String tableName, String fieldName, Class typeClass) {
+        String queryStr = "PRAGMA table_info('%s');";
+        queryStr = String.format(queryStr, tableName);
+        Cursor cursor = db.rawQuery(queryStr, null);
+        boolean b = false;
+        try {
+            while (cursor.moveToNext()) {
+                String name = cursor.getString(cursor.getColumnIndex("name"));
+                String type = cursor.getString(cursor.getColumnIndex("type"));
+                if (name.equals(fieldName)) {
+                    System.out.println("name=" + name + ",type=" + type);
+                    if ((type.equals("INTEGER") && (typeClass == boolean.class || typeClass == int.class))) {
+                        b = true;
+                    } else if (((type.equals("TEXT") || type.startsWith("VARCHAR")) && (typeClass == String.class || typeClass == long.class))) {
+                        b = true;
+                    }
+                    break;
+                }
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        //System.out.println("字段："+fieldName+",类型："+typeClass+",存在:"+b);
+        return b;
+    }
+
+    public long getLastIndex() {
         //获取索引
         Cursor cursor = getDb().rawQuery("select LAST_INSERT_ROWID() ", null);
         cursor.moveToFirst();
         return cursor.getLong(0);
     }
-
-    public Cursor execSQL(String sql){
+    public Cursor execQuerySQL(String tableName, String sql) {
         getDb().acquireReference();
-        Cursor cursor =null;
+        Cursor cursor = null;
         try {
-            String[] selectionArgs =null;
-            cursor = getDb().rawQueryWithFactory(null, sql,selectionArgs,
-                    getDb().findEditTable("MEMBER"), null);
-        } finally {
+            String[] selectionArgs = null;
+            cursor = getDb().rawQueryWithFactory(null, sql, selectionArgs,
+                    SQLiteDatabase.findEditTable(tableName), null);
+        }catch (Exception exception){
+            exception.printStackTrace();
+        }finally {
             getDb().releaseReference();
         }
         return cursor;
+    }
+
+    /**
+     * 测试 delet方法失效
+     * @param 
+     * @param sql
+     */
+   /* public void execQuerySQL(String tableName, String sql) {
+        getDb().acquireReference();
+        Cursor cursor = null;
+        try {
+            String[] selectionArgs = null;
+            cursor = getDb().rawQueryWithFactory(null, sql, selectionArgs,
+                    getDb().findEditTable(tableName), null);
+        }catch (Exception exception){
+            exception.printStackTrace();
+        }finally {
+            if(cursor!=null){
+                cursor.close();
+            }
+            getDb().releaseReference();
+        }
+    }*/
+
+    public void execDeleteSQL(String sql) {
+        getDb().execSQL(sql);
     }
 }

@@ -1,24 +1,16 @@
 package cn.demomaster.quickdatabase;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import cn.demomaster.quickdatabase.adapter.TabAttrs;
-import cn.demomaster.quickdatabase.adapter.TableAdapter;
 import cn.demomaster.quickdatabase.model.Member;
 import cn.demomaster.quickdatabase.model.User;
 import cn.demomaster.quickdatabase.view.TableView;
@@ -84,26 +76,13 @@ public class MainActivity extends AppCompatActivity implements UpgradeInterface 
     }
 
     public void findList1(View view) {
+        getAllRecord();
+    }
+
+    private void getAllRecord() {
         List<Member> members = new ArrayList<>();
         members = dbHelper.findArray("select * from member", Member.class);
         print("总记录数：" + (members == null ? "0" : members.size()));
-
-
-       /* String[] titles =new String[]{"id","name","age","sex"};
-
-        tableView.setTitles(titles);
-        List<String[]> stringList = new ArrayList<>();
-        for(int i=0;i<members.size();i++){
-            String[] strings = new String[titles.length];
-
-            strings[0]=members.get(i).getId()+"";
-            strings[1]=members.get(i).getName()+"";
-            strings[2]=members.get(i).getAge()+"";
-            strings[3]=members.get(i).getSex()+"";
-            stringList.add(strings);
-        }
-        tableView.setData(stringList);*/
-
         tableView.setData(members);
     }
 
@@ -130,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements UpgradeInterface 
             members.add(member1);
         }
         dbHelper.insertArray(members);
+        getAllRecord();
     }
 
     public void insert1(View view) {
@@ -138,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements UpgradeInterface 
         member.setAge(new Random().nextInt());
         dbHelper.insert(member);
         print("单条数据插入:" + member.toString());
-
+        getAllRecord();
        /* User user = new User();
         user.setName("张三");
         user.setAge(18);
@@ -181,11 +161,13 @@ public class MainActivity extends AppCompatActivity implements UpgradeInterface 
         } catch (Exception e) {
             e.printStackTrace();
         }
+        getAllRecord();
     }
 
     public void deleteAll(View view) {
         dbHelper.deleteAll(Member.class);
         print("删除全部记录");
+        getAllRecord();
     }
 
     public void modify01(View view) {

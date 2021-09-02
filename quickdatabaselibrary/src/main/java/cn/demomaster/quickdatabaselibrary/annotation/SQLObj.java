@@ -11,5 +11,9 @@ import java.lang.annotation.Target;
 public  @interface SQLObj {
     int value() default 0;
     String name() default "";
+    String comment() default "";//注释
+    String dataType() default "";//数据类型
+    String format() default "";//数据格式化
+    String dataSet() default "{}";//数据格式化
     Constraints constraints() default @Constraints;
 }

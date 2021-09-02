@@ -1,6 +1,6 @@
 package cn.demomaster.quickdatabaselibrary.sql;
 
-import android.database.sqlite.SQLiteOpenHelper;
+import android.content.ContentValues;
 
 import java.util.List;
 
@@ -9,7 +9,8 @@ public interface SqlCreatorInterFace {
     boolean insert(Object model);
     boolean insertArray(List models);
     //删除
-    boolean delete(Object model);
+    //boolean delete(Object model);
+    boolean delete(String tableName,ContentValues contentValues);
     <T> boolean deleteAll(Class<T> clazz);
     //改
     <T> T modify(T model);
