@@ -29,7 +29,6 @@ public class QDSqlCreator extends SqlCreator {
         return false;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public boolean insertArray(List models) {
         SQLiteDatabase db = getDb();
@@ -114,7 +113,6 @@ public class QDSqlCreator extends SqlCreator {
         return true;
     }
 
-    @SuppressWarnings("unchecked")
     public boolean delete(Object model) {
         TableInfo tableInfo = TableHelper.getTableInfo(model);
         try {
@@ -154,7 +152,6 @@ public class QDSqlCreator extends SqlCreator {
         getDb().execSQL(sql);
         return true;
     }
-    @SuppressWarnings("unchecked")
     @Override
     public <T> T modify(T model) {
         TableInfo tableInfo = TableHelper.getTableInfo(model);
