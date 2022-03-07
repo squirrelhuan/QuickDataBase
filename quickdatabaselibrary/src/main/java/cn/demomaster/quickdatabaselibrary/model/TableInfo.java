@@ -1,5 +1,6 @@
 package cn.demomaster.quickdatabaselibrary.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TableInfo {
@@ -20,5 +21,12 @@ public class TableInfo {
 
     public void setTableColumns(List<TableColumn> tableColumns) {
         this.tableColumns = tableColumns;
+    }
+    
+    public void addCoumn(TableColumn tableColumn){
+        if(tableColumns==null){
+            tableColumns = new ArrayList<>();
+        }
+        tableColumns.add(tableColumn);
     }
 }

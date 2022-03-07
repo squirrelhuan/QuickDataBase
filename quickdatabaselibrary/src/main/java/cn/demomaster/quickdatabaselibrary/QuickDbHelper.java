@@ -14,11 +14,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import cn.demomaster.quickdatabaselibrary.listener.UpgradeInterface;
 import cn.demomaster.quickdatabaselibrary.model.SqliteTable;
 import cn.demomaster.quickdatabaselibrary.model.TableColumn;
+import cn.demomaster.quickdatabaselibrary.model.TableInfo;
+import cn.demomaster.quickdatabaselibrary.model.TableItem;
 import cn.demomaster.quickdatabaselibrary.sql.QDSqlCreator;
 import cn.demomaster.quickdatabaselibrary.sql.SqlCreator;
 import cn.demomaster.quickdatabaselibrary.sql.SqlCreatorInterFace;
@@ -160,6 +163,7 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
             return;
         }
         String path = mContext.getDatabasePath(DATABASE_NAME).getPath();
+        System.out.println("copyDataBaseFile="+path);
         InputStream is = null;
         OutputStream os = null;
         try {
@@ -237,7 +241,7 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
     public void setUpgradeInterface(UpgradeInterface upgradeInterface) {
         this.upgradeInterface = upgradeInterface;
     }
-
+    
     /**
      * 创建表结构
      *
@@ -266,6 +270,11 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
     @Override
     public boolean insert(Object model) {
         return sqlCreator.insert(model);
+    }
+
+    @Override
+    public boolean insert(String tabname, List<TableColumn> tableColumnList) {
+        return sqlCreator.insert(tabname,tableColumnList);
     }
 
     @Override
@@ -318,6 +327,46 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
         return sqlCreator.findArray(sql, clazz);
     }
 
+    @Override
+    public List<TableItem> findArray(String tableName, String sql) {
+        return sqlCreator.findArray(tableName,sql);
+    }
+    /**
+     * 根据表名获取表信息
+     * @param tableName
+     * @return
+     */
+    public TableInfo findTableByName(String tableName) {
+        TableInfo tableInfo=null;
+        Cursor cursor = execQuerySQL(tableName, "PRAGMA table_info(["+tableName+"]);");
+        if(cursor!=null) {
+            tableInfo = new TableInfo();
+            tableInfo.setTableName(tableName);
+            while (cursor.moveToNext()) {
+                int columnCursorIndex = cursor.getColumnIndex("name");
+                String columnName = cursor.getString(columnCursorIndex);
+
+                int columnCursorIndex2 = cursor.getColumnIndex("type");
+                String type = cursor.getString(columnCursorIndex2);
+
+                int columnCursorIndex3 = cursor.getColumnIndex("notnull");
+                int notnull = cursor.getInt(columnCursorIndex3);
+
+                int columnCursorIndex4 = cursor.getColumnIndex("pk");
+                int pk = cursor.getInt(columnCursorIndex4);
+
+                System.out.println("columnName="+columnName+",columntype=" + type);
+                TableColumn tableColumn = new TableColumn();
+                tableColumn.setName(columnName);
+                tableColumn.setType(type);
+                tableColumn.setNotNull(notnull);
+                tableColumn.setPk(pk);
+                tableInfo.addCoumn(tableColumn);
+            }
+            cursor.close();
+        }
+        return tableInfo;
+    }
     /**
      * 获取数据库中所有表
      *
@@ -353,7 +402,7 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
     }
 
     public static boolean checkFieldType(SQLiteDatabase db, String tableName, TableColumn tableColumn) {
-        return checkFieldType(db, tableName, tableColumn.getColumnName(), tableColumn.getDataType());
+        return checkFieldType(db, tableName, tableColumn.getName(), tableColumn.getDataType());
     }
 
     /**

@@ -1,5 +1,6 @@
 package cn.demomaster.quickdatabase;
 
+import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
@@ -13,7 +14,7 @@ import java.util.Random;
 
 import cn.demomaster.quickdatabase.model.Member;
 import cn.demomaster.quickdatabase.model.User;
-import cn.demomaster.quickdatabase.view.TableView;
+import cn.demomaster.quickdatabaselibrary.view.TableView;
 import cn.demomaster.quickdatabaselibrary.QuickDbHelper;
 import cn.demomaster.quickdatabaselibrary.listener.UpgradeInterface;
 
@@ -96,7 +97,9 @@ public class MainActivity extends AppCompatActivity implements UpgradeInterface 
     private void deleteSingle() {
         User user_d = new User();
         user_d.setId(2);
-        dbHelper.delete(user_d);
+        ContentValues values = new ContentValues();
+        values.put("id",2);
+        dbHelper.delete("user",values);
     }
 
     public void insert2(View view) {
@@ -156,7 +159,10 @@ public class MainActivity extends AppCompatActivity implements UpgradeInterface 
         }
         Member member = members.get(0);
         try {
-            dbHelper.delete(member);
+            ContentValues values = new ContentValues();
+            values.put("id",member.getId());
+            dbHelper.delete("MEMBER",values);
+            //dbHelper.delete(member);
             print("删除记录" + member.getId());
         } catch (Exception e) {
             e.printStackTrace();

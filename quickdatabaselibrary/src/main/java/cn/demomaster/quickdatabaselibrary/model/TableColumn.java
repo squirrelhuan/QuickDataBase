@@ -1,22 +1,52 @@
 package cn.demomaster.quickdatabaselibrary.model;
 
+import android.text.TextUtils;
+
+import java.io.Serializable;
 import java.lang.reflect.Field;
 
 import cn.demomaster.quickdatabaselibrary.TableHelper;
 import cn.demomaster.quickdatabaselibrary.annotation.SQLObj;
 
-public class TableColumn {
-    private String columnName;
+public class TableColumn implements Serializable {
+    private String name;//字段名
+    private String type;//字段类型 TEXT INT
+    private int notNull;//是否为空 0 可为空 1不为空
+    private int pk;//主键 0 否 1是
     private Object valueObj;
     private Field field;
     private SQLObj sqlObj;
 
-    public String getColumnName() {
-        return columnName;
+    public int getPk() {
+        return pk;
     }
 
-    public void setColumnName(String columnName) {
-        this.columnName = columnName;
+    public void setPk(int pk) {
+        this.pk = pk;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public int getNotNull() {
+        return notNull;
+    }
+
+    public void setNotNull(int notNull) {
+        this.notNull = notNull;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Object getValueObj() {
@@ -24,12 +54,20 @@ public class TableColumn {
     }
 
     public String getValueSql() {
-        if (field.getType() == boolean.class) {//true=1,false=0
-            return (((boolean)valueObj)?"1":"0");
-        } else if (field.getType() == int.class) {
-            return valueObj + "";
-        } else if (field.getType() == String.class || field.getType() == long.class) {
-            return "'" + valueObj + "'";
+        if(field!=null) {
+            if (field.getType() == boolean.class) {//true=1,false=0
+                return (((boolean) valueObj) ? "1" : "0");
+            } else if (field.getType() == int.class) {
+                return valueObj + "";
+            } else if (field.getType() == String.class || field.getType() == long.class) {
+                return "'" + valueObj + "'";
+            }
+        }else if(!TextUtils.isEmpty(type)){
+            if (type.equalsIgnoreCase("INT")||type.equalsIgnoreCase("INTEGER")) {//true=1,false=0
+                return valueObj +"";
+            } else if (type.equalsIgnoreCase("TEXT")) {
+                return "'" + valueObj + "'";
+            }
         }
         return null;
     }
@@ -55,12 +93,12 @@ public class TableColumn {
     }
 
     public String getSqlString() {
-        String sql = getColumnName() + " TEXT";
+        String sql = getName() + " TEXT";
         Class clazz = getDataType();
         if (clazz == int.class || clazz == boolean.class) {
-            sql = getColumnName() + " INTEGER " + TableHelper.getConstraints(getSqlObj().constraints());
+            sql = getName() + " INTEGER " + TableHelper.getConstraints(getSqlObj().constraints());
         } else if (clazz == String.class || clazz == long.class) {
-            sql = getColumnName() + " VARCHAR(" + getSqlObj().value() + ")" + TableHelper.getConstraints(getSqlObj().constraints());
+            sql = getName() + " VARCHAR(" + getSqlObj().value() + ")" + TableHelper.getConstraints(getSqlObj().constraints());
         }
         return sql;
     }
@@ -73,5 +111,18 @@ public class TableColumn {
             }
         }
         return clazz;
+    }
+
+    @Override
+    public String toString() {
+        return "TableColumn{" +
+                "name='" + name + '\'' +
+                ", type='" + type + '\'' +
+                ", notNull=" + notNull +
+                ", pk=" + pk +
+                ", valueObj=" + valueObj +
+                ", field=" + field +
+                ", sqlObj=" + sqlObj +
+                '}';
     }
 }

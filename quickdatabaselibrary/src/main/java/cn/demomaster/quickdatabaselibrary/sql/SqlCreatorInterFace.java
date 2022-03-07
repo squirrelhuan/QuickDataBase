@@ -4,9 +4,13 @@ import android.content.ContentValues;
 
 import java.util.List;
 
+import cn.demomaster.quickdatabaselibrary.model.TableColumn;
+import cn.demomaster.quickdatabaselibrary.model.TableItem;
+
 public interface SqlCreatorInterFace {
     //增加
     boolean insert(Object model);
+    boolean insert(String tabname,List<TableColumn> tableColumnList);
     boolean insertArray(List models);
     //删除
     //boolean delete(Object model);
@@ -21,4 +25,5 @@ public interface SqlCreatorInterFace {
     <T> T findOne(String sql,Class<T> clazz);
     <T> List<T> findArray(T model);
     <T> List<T> findArray(String sql,Class<T> clazz);
+    List<TableItem> findArray(String tableName, String sql);
 }

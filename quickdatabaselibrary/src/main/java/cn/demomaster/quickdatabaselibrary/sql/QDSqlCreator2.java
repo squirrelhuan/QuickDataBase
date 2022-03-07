@@ -29,7 +29,7 @@ public class QDSqlCreator2 {
                         //boolean accessFlag = field.isAccessible();
                         field.setAccessible(true);
                         String valueStr = tableColumn.getField().get(obj) + "";
-                        values.put(tableColumn.getColumnName(), valueStr);
+                        values.put(tableColumn.getName(), valueStr);
                         //field.setAccessible(accessFlag);
                     }
                 }
@@ -60,7 +60,7 @@ public class QDSqlCreator2 {
                 for (int i = 0; i < tableInfo.getTableColumns().size(); i++) {
                     Field field = tableInfo.getTableColumns().get(i).getField();
                     field.setAccessible(true);
-                    values.put(tableInfo.getTableColumns().get(i).getColumnName(),field.get(obj)+"");
+                    values.put(tableInfo.getTableColumns().get(i).getName(),field.get(obj)+"");
                 }
                 db.insert(tableInfo.getTableName(), null, values);
                 values.clear();

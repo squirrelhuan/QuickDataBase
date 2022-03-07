@@ -1,4 +1,4 @@
-package cn.demomaster.quickdatabase.adapter;
+package cn.demomaster.quickdatabaselibrary.adapter;
 
 
 import android.content.Context;

@@ -1,12 +1,10 @@
-package cn.demomaster.quickdatabase.view;
+package cn.demomaster.quickdatabaselibrary.view;
 
 import android.content.Context;
 import android.graphics.Color;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.HorizontalScrollView;
@@ -22,17 +20,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import cn.demomaster.quickdatabase.adapter.TabAttrs;
-import cn.demomaster.quickdatabase.adapter.TableAdapter;
+import cn.demomaster.quickdatabaselibrary.adapter.TabAttrs;
+import cn.demomaster.quickdatabaselibrary.adapter.TableAdapter;
 import cn.demomaster.quickdatabaselibrary.annotation.DBTable;
 import cn.demomaster.quickdatabaselibrary.annotation.SQLObj;
 import cn.demomaster.quickdatabaselibrary.model.TableColumn;
 import cn.demomaster.quickdatabaselibrary.model.TableInfo;
+import cn.demomaster.quickdatabaselibrary.model.TableItem;
 
 public class TableView extends HorizontalScrollView implements TabAttrs {
     public TableView(@NonNull Context context) {
@@ -199,7 +197,7 @@ public class TableView extends HorizontalScrollView implements TabAttrs {
                         boolean accessFlag = field.isAccessible();
                         field.setAccessible(true);
 
-                        tableColumn.setColumnName(columnName);
+                        tableColumn.setName(columnName);
                     /*if (obj != null && !(obj instanceof String)) {
                         tableColumn.setValueObj(field.get(obj));
                     }*/
@@ -215,7 +213,6 @@ public class TableView extends HorizontalScrollView implements TabAttrs {
 
             //字段排序
             tableColumns = sortColumn(tableColumns);
-
 
             for (int i = 0; i < modelList.size(); i++) {
                 T model = modelList.get(i);
@@ -236,14 +233,31 @@ public class TableView extends HorizontalScrollView implements TabAttrs {
 
             mTitles = new String[tableColumns.size()];
             for (int i = 0; i < tableColumns.size(); i++) {
-                mTitles[i] = tableColumns.get(i).getColumnName();
+                mTitles[i] = tableColumns.get(i).getName();
             }
         }
         initTabTitle(mTitles);
-
         setData1(stringList);
+    }
 
-        return;
+    public void setData3(List<TableItem> tableItemList) {
+        List<String[]> stringList = new ArrayList<>();
+        if (tableItemList != null&&tableItemList.size()>0) {
+            for (int i = 0; i < tableItemList.size(); i++) {
+                String[] columnStrs = new String[tableItemList.get(i).size()];
+                for (int j = 0;j < columnStrs.length; j++) {
+                    columnStrs[j]=tableItemList.get(i).get(j).getValueObj()+"";
+                }
+                stringList.add(columnStrs);
+            }
+        }
+        initTabTitle(mTitles);
+        setData1(stringList);
+    }
+    public <T> void setData2(List<String[]> modelList) {
+        List<String[]> stringList = modelList;
+        initTabTitle(mTitles);
+        setData1(stringList);
     }
 
     /**
@@ -255,7 +269,7 @@ public class TableView extends HorizontalScrollView implements TabAttrs {
     private List<TableColumn> sortColumn(List<TableColumn> tableColumns) {
         LinkedHashMap<String, TableColumn> map = new LinkedHashMap<>();
         for (TableColumn tableColumn : tableColumns) {
-            map.put(tableColumn.getColumnName(), tableColumn);
+            map.put(tableColumn.getName(), tableColumn);
         }
 
         //把id排序在最左边

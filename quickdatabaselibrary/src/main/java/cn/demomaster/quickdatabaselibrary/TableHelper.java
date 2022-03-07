@@ -17,6 +17,7 @@ import cn.demomaster.quickdatabaselibrary.annotation.DBTable;
 import cn.demomaster.quickdatabaselibrary.annotation.SQLObj;
 import cn.demomaster.quickdatabaselibrary.model.TableColumn;
 import cn.demomaster.quickdatabaselibrary.model.TableInfo;
+import cn.demomaster.quickdatabaselibrary.model.TableItem;
 
 public class TableHelper {
     static QuickDbHelper mQuickDb;
@@ -42,9 +43,9 @@ public class TableHelper {
         List<String> columnDefs = new ArrayList<>();
         for (TableColumn tableColumn : tableInfo.getTableColumns()) {
             if (tableColumn.getField().getType() == int.class || tableColumn.getField().getType() == long.class) {
-                columnDefs.add(tableColumn.getColumnName() + " INTEGER " + getConstraints(tableColumn.getSqlObj().constraints()));
+                columnDefs.add(tableColumn.getName() + " INTEGER " + getConstraints(tableColumn.getSqlObj().constraints()));
             } else if (tableColumn.getField().getType() == String.class) {
-                columnDefs.add(tableColumn.getColumnName() + " VARCHAR(" + tableColumn.getSqlObj().value() + ")" + getConstraints(tableColumn.getSqlObj().constraints()));
+                columnDefs.add(tableColumn.getName() + " VARCHAR(" + tableColumn.getSqlObj().value() + ")" + getConstraints(tableColumn.getSqlObj().constraints()));
             }
         }
 
@@ -96,8 +97,8 @@ public class TableHelper {
     public static String upedateTableSql(SQLiteDatabase db, String tableName, TableColumn tableColumn) {
         //判斷字段是否存在
         String sql = null;
-        if (!QuickDbHelper.isFieldExist(db, tableName, tableColumn.getColumnName())) {//不存在，添加表字段
-            Log.e("TABLE", tableColumn.getColumnName() + "字段不存在");
+        if (!QuickDbHelper.isFieldExist(db, tableName, tableColumn.getName())) {//不存在，添加表字段
+            Log.e("TABLE", tableColumn.getName() + "字段不存在");
             sql = String.format("ALTER TABLE %s ADD COLUMN %s", tableName, tableColumn.getSqlString());
         } else {
             //字段存在，判断字段类型是否一致，不一致则修改表字段。
@@ -142,13 +143,13 @@ public class TableHelper {
                     StringBuilder stringBuilder = new StringBuilder();
                     for (String string : strings) {
                         String s = removeFirstTrim(string);
-                        if (!s.startsWith(tableColumn.getColumnName() + ' ')) {
+                        if (!s.startsWith(tableColumn.getName() + ' ')) {
                             stringBuilder.append(s)
                                     .append(",");
                         }
                     }
                     creatNewTableSql = "CREATE TABLE " + tableName + "(" + stringBuilder.toString() + tableColumn.getSqlString() + ")";
-                    Log.d("TABLE", "增加字段:" + tableColumn.getColumnName());
+                    Log.d("TABLE", "增加字段:" + tableColumn.getName());
                 }
 
                 db.execSQL(creatNewTableSql);
@@ -229,7 +230,35 @@ public class TableHelper {
         }
         return constraints;
     }
-
+    
+    public static String generateInsertSql(String tabname, List<TableColumn> tableColumnList) {
+        /*INSERT INTO TABLE_NAME (column1, column2, column3,...columnN) VALUES (value1, value2, value3,...valueN);*/
+        StringBuilder insertCommand = new StringBuilder("INSERT INTO " + tabname + " ");
+        StringBuilder keyStr = new StringBuilder("(");
+        StringBuilder valueStr = new StringBuilder(" VALUES(");
+        boolean isFirst = true;
+        for (TableColumn column : tableColumnList) {
+            //if(column.getPk()!=1) {
+                if (column.getValueObj() != null) {
+                    String value1 = column.getValueSql();
+                    if (!TextUtils.isEmpty(value1)) {
+                        keyStr.append((isFirst ? "" : ","))
+                                .append("\"")
+                                .append(column.getName())
+                                .append("\"");
+                        valueStr.append((isFirst ? "" : ","))
+                                .append(value1);
+                        isFirst = false;
+                    }
+                }
+            //}
+        }
+        keyStr.append(")");
+        valueStr.append(");");
+        insertCommand.append(keyStr);
+        insertCommand.append(valueStr);
+        return insertCommand.toString();
+    }
     public static String generateInsertSql(Object obj) {
         if (obj == null) {
             return null;
@@ -248,7 +277,7 @@ public class TableHelper {
                     if (!TextUtils.isEmpty(value1)) {
                         keyStr.append((isFirst ? "" : ","))
                                 .append("\"")
-                                .append(entry.getColumnName())
+                                .append(entry.getName())
                                 .append("\"");
                         valueStr.append((isFirst ? "" : ","))
                                 .append(value1);
@@ -280,7 +309,7 @@ public class TableHelper {
                     String valueStr = tableColumn.getValueSql();
                     if (!TextUtils.isEmpty(valueStr)) {
                         stringBuilder.append((isfirst ? "" : " and "))
-                                .append(tableColumn.getColumnName())
+                                .append(tableColumn.getName())
                                 .append("=")
                                 .append(valueStr);
                         isfirst = false;
@@ -300,7 +329,7 @@ public class TableHelper {
     public static <T> T findModelOne(Object obj, Class<T> clazz) {
         TableInfo tableInfo = getTableInfo(obj, clazz);
         List<T> list = findModels(tableInfo, clazz, false);
-        if (list == null || list.size() == 0) {
+        if (list.size() == 0) {
             return null;
         }
         return list.get(0);
@@ -360,8 +389,8 @@ public class TableHelper {
                     }
                     boolean accessFlag = field.isAccessible();
                     field.setAccessible(true);
-
-                    tableColumn.setColumnName(columnName);
+                    
+                    tableColumn.setName(columnName);
                     if (obj != null && !(obj instanceof String)) {
                         tableColumn.setValueObj(field.get(obj));
                     }
@@ -391,7 +420,47 @@ public class TableHelper {
         Cursor cursor = mQuickDb.execQuerySQL(tableInfo.getTableName(), sql);
         return generateModelsByCursor(cursor, clazz, isArray);
     }
-
+    public static List<TableItem>  generateModels3(String tableName, String sql, boolean isArray) {
+        Cursor cursor = mQuickDb.execQuerySQL(tableName, sql);
+        return generateModelsByCursor(cursor, isArray);
+    }
+    /**
+     * 根据查询游标 生成实体类
+     *
+     * @param cursor  sql执行结果
+     * @param clazz   目标实体类
+     * @param isArray 返回值是否是集合
+     * @param <T>
+     * @return
+     */
+    public static List<TableItem> generateModelsByCursor(Cursor cursor,  boolean isArray) {
+        List<TableItem> tableItemList = new ArrayList<>();
+        if (cursor == null) {
+            return tableItemList;
+        }
+        while (cursor.moveToNext()) {
+            try {
+                TableItem tableItem =new TableItem();
+                int count = cursor.getColumnCount();
+                for(int i=0;i<count;i++){
+                    String columnName = cursor.getColumnName(i);
+                    String columnValue = cursor.getString(i);
+                    TableColumn tableColumn = new TableColumn();
+                    tableColumn.setName(columnName);
+                    tableColumn.setValueObj(columnValue);
+                    tableItem.add(tableColumn);
+                }
+                tableItemList.add(tableItem);
+                if (!isArray) {
+                    break;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        cursor.close();
+        return tableItemList;
+    }
     /**
      * 根据查询游标 生成实体类
      *
@@ -459,9 +528,7 @@ public class TableHelper {
                 e.printStackTrace();
             }
         }
-        if (cursor != null) {
-            cursor.close();
-        }
+        cursor.close();
         return list;
     }
 
@@ -469,7 +536,7 @@ public class TableHelper {
         TableInfo tableInfo = getTableInfo(obj, obj.getClass());
         ContentValues values = new ContentValues();
         for (TableColumn tableColumn : tableInfo.getTableColumns()) {
-            values.put(tableColumn.getColumnName(), tableColumn.getValueObj() + "");
+            values.put(tableColumn.getName(), tableColumn.getValueObj() + "");
         }
         mQuickDb.getDb().insert(tableInfo.getTableName(), null, values);
     }

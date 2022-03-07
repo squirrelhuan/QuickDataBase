@@ -10,45 +10,49 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
 
-    <Button
-        android:id="@+id/btn_add01"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="insert1"
-        android:text="添加一条数据"/>
-    <Button
-        android:id="@+id/btn_add02"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="insert2"
-        android:text="添加10条数据"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/btn_del01"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="delete01"
-            android:text="删除当前记录"/>
-        <Button
-            android:id="@+id/btn_del02"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="deleteAll"
-            android:text="删除所有数据"/>
+            android:orientation="horizontal">
 
-    </LinearLayout>
+            <Button
+                android:id="@+id/btn_add01"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="insert1"
+                android:text="添加一条数据" />
+
+            <Button
+                android:id="@+id/btn_add02"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="insert2"
+                android:text="添加10条数据" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_del01"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="delete01"
+                android:text="删除当前记录" />
+
+            <Button
+                android:id="@+id/btn_del02"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="deleteAll"
+                android:text="删除所有数据" />
+
+        </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -59,7 +63,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="modify01"
-                android:text="修改当前记录"/>
+                android:text="修改当前记录" />
 
         </LinearLayout>
 
@@ -73,19 +77,21 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="findOne1"
-                android:text="当前记录"/>
+                android:text="当前记录" />
+
             <Button
                 android:id="@+id/btn_fin02"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="findList1"
-                android:text="全部记录"/>
+                android:text="全部记录" />
+
             <Button
                 android:id="@+id/btn_fin03"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="findList2"
-                android:text="sql查找"/>
+                android:text="sql查找" />
         </LinearLayout>
 
         <Button
@@ -93,19 +99,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="clear"
-            android:text="clear"/>
+            android:text="clear" />
+
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="100dp">
+
             <TextView
                 android:id="@+id/tv_console"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+                android:layout_height="match_parent" />
         </ScrollView>
 
-        <cn.demomaster.quickdatabase.view.TableView
+        <cn.demomaster.quickdatabaselibrary.view.TableView
             android:id="@+id/tableView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

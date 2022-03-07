@@ -12,6 +12,7 @@ import java.util.List;
 import cn.demomaster.quickdatabaselibrary.TableHelper;
 import cn.demomaster.quickdatabaselibrary.model.TableColumn;
 import cn.demomaster.quickdatabaselibrary.model.TableInfo;
+import cn.demomaster.quickdatabaselibrary.model.TableItem;
 
 public class QDSqlCreator extends SqlCreator {
 
@@ -22,6 +23,17 @@ public class QDSqlCreator extends SqlCreator {
     @Override
     public boolean insert(Object model) {
         String sql = TableHelper.generateInsertSql(model);
+        if (!TextUtils.isEmpty(sql)) {
+            getDb().execSQL(sql);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean insert(String tabname, List<TableColumn> tableColumn) {
+        String sql = TableHelper.generateInsertSql(tabname,tableColumn);
+        System.out.println("insertSql="+sql);
         if (!TextUtils.isEmpty(sql)) {
             getDb().execSQL(sql);
             return true;
@@ -46,7 +58,7 @@ public class QDSqlCreator extends SqlCreator {
                 TableColumn tableColumn = tableInfo.getTableColumns().get(i);
                 if (!tableColumn.getSqlObj().constraints().autoincrement()) {
                     stringBuilder1.append ((isf1 ? "" : ","))
-                    .append(tableColumn.getColumnName());
+                    .append(tableColumn.getName());
                     stringBuilder2.append(isf1 ? "?" : ",?");
                     isf1 = false;
                 }
@@ -130,7 +142,7 @@ public class QDSqlCreator extends SqlCreator {
                         String valueStr = tableColumn.getValueSql();
                         //field.setAccessible(accessFlag);
                         stringBuilder.append ((b ? " " : " and ") )
-                    .append(tableColumn.getColumnName() )
+                    .append(tableColumn.getName() )
                     .append("=" )
                     .append(valueStr);
                         b = false;
@@ -164,13 +176,13 @@ public class QDSqlCreator extends SqlCreator {
                 TableColumn tableColumn = tableInfo.getTableColumns().get(i);
                 if (!tableColumn.getSqlObj().constraints().autoincrement()) {
                     stringBuilder1.append ((isf1 ? "" : ",") )
-                .append(tableColumn.getColumnName())
+                .append(tableColumn.getName())
                 .append("=")
                 .append(tableColumn.getValueSql());
                     isf1 = false;
                 }
                 if(tableColumn.getSqlObj().constraints().primaryKey()){
-                    stringBuilder2.append(tableColumn.getColumnName())
+                    stringBuilder2.append(tableColumn.getName())
                 .append("=")
                 .append(tableColumn.getValueSql());
                 }
@@ -226,6 +238,13 @@ public class QDSqlCreator extends SqlCreator {
        // return TableHelper.generateModels(tableInfo, params, sql, clazz, true);
         return TableHelper.generateModels2(sql, clazz, true);
     }
-
+    @Override
+    public List<TableItem> findArray(String tableName,String sql) {
+        //TableInfo tableInfo = TableHelper.getTableInfo(clazz);
+        //String[] params = new String[]{"*"};
+        //String whereParams = TableHelper.generateWhereParams(tableInfo);
+        // return TableHelper.generateModels(tableInfo, params, sql, clazz, true);
+        return TableHelper.generateModels3(tableName,sql,true);
+    }
 
 }
