@@ -1,7 +1,9 @@
 package cn.demomaster.quickdatabaselibrary.sql;
 
 import android.content.ContentValues;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 import android.text.TextUtils;
@@ -21,24 +23,16 @@ public class QDSqlCreator extends SqlCreator {
     }
 
     @Override
-    public boolean insert(Object model) {
+    public void insert(Object model) throws SQLiteException {
         String sql = TableHelper.generateInsertSql(model);
-        if (!TextUtils.isEmpty(sql)) {
-            getDb().execSQL(sql);
-            return true;
-        }
-        return false;
+        getDb().execSQL(sql);
     }
 
     @Override
-    public boolean insert(String tabname, List<TableColumn> tableColumn) {
-        String sql = TableHelper.generateInsertSql(tabname,tableColumn);
-        System.out.println("insertSql="+sql);
-        if (!TextUtils.isEmpty(sql)) {
-            getDb().execSQL(sql);
-            return true;
-        }
-        return false;
+    public void insert(String tabname, List<TableColumn> tableColumn) throws SQLiteException {
+        String sql = TableHelper.generateInsertSql(tabname, tableColumn);
+        System.out.println("insertSql=" + sql);
+        getDb().execSQL(sql);
     }
 
     @Override
@@ -57,8 +51,8 @@ public class QDSqlCreator extends SqlCreator {
             for (int i = 0; i < tableInfo.getTableColumns().size(); i++) {
                 TableColumn tableColumn = tableInfo.getTableColumns().get(i);
                 if (!tableColumn.getSqlObj().constraints().autoincrement()) {
-                    stringBuilder1.append ((isf1 ? "" : ","))
-                    .append(tableColumn.getName());
+                    stringBuilder1.append((isf1 ? "" : ","))
+                            .append(tableColumn.getName());
                     stringBuilder2.append(isf1 ? "?" : ",?");
                     isf1 = false;
                 }
@@ -98,27 +92,27 @@ public class QDSqlCreator extends SqlCreator {
     }
 
     @Override
-    public boolean delete(String tableName,ContentValues contentValues) {
+    public boolean delete(String tableName, ContentValues contentValues) {
         try {
-               StringBuilder stringBuilder = new StringBuilder();
-               if(contentValues!=null&&contentValues.size()>0) {
-                   stringBuilder.append("delete from ")
-                           .append(tableName)
-               .append(" where ");
-                   boolean b = true;
-                   for (String key : contentValues.keySet()) {
-                       stringBuilder.append((b ? " " : " and "))
-                   .append(key )
-                   .append("=" )
-                   .append(contentValues.get(key));
-                       b = false;
-                   }
-                   System.out.println("sql="+stringBuilder.toString());
-                   getDb().execSQL(stringBuilder.toString());
-               }else {
-                   System.out.println("delete 条件语句限制请使用execDeleteSQL");
-                   return false;
-               }
+            if (contentValues != null && contentValues.size() > 0) {
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append("delete from ")
+                        .append(tableName)
+                        .append(" where ");
+                boolean b = true;
+                for (String key : contentValues.keySet()) {
+                    stringBuilder.append((b ? " " : " and "))
+                            .append(key)
+                            .append("=")
+                            .append(contentValues.get(key));
+                    b = false;
+                }
+                System.out.println("sql=" + stringBuilder.toString());
+                getDb().execSQL(stringBuilder.toString());
+            } else {
+                System.out.println("delete 条件语句限制请使用execDeleteSQL");
+                return false;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -131,8 +125,8 @@ public class QDSqlCreator extends SqlCreator {
             if (tableInfo != null && tableInfo.getTableColumns() != null && tableInfo.getTableColumns().size() > 0) {
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.append("delete from ")
-            .append(tableInfo.getTableName())
-            .append(" where ");
+                        .append(tableInfo.getTableName())
+                        .append(" where ");
                 boolean b = true;
                 for (TableColumn tableColumn : tableInfo.getTableColumns()) {
                     if (tableColumn.getValueObj() != null) {
@@ -141,14 +135,14 @@ public class QDSqlCreator extends SqlCreator {
                         field.setAccessible(true);
                         String valueStr = tableColumn.getValueSql();
                         //field.setAccessible(accessFlag);
-                        stringBuilder.append ((b ? " " : " and ") )
-                    .append(tableColumn.getName() )
-                    .append("=" )
-                    .append(valueStr);
+                        stringBuilder.append((b ? " " : " and "))
+                                .append(tableColumn.getName())
+                                .append("=")
+                                .append(valueStr);
                         b = false;
                     }
                 }
-                System.out.println("sql="+stringBuilder.toString());
+                System.out.println("sql=" + stringBuilder.toString());
                 getDb().execSQL(stringBuilder.toString());
             }
         } catch (Exception e) {
@@ -164,6 +158,7 @@ public class QDSqlCreator extends SqlCreator {
         getDb().execSQL(sql);
         return true;
     }
+
     @Override
     public <T> T modify(T model) {
         TableInfo tableInfo = TableHelper.getTableInfo(model);
@@ -175,20 +170,20 @@ public class QDSqlCreator extends SqlCreator {
             for (int i = 0; i < tableInfo.getTableColumns().size(); i++) {
                 TableColumn tableColumn = tableInfo.getTableColumns().get(i);
                 if (!tableColumn.getSqlObj().constraints().autoincrement()) {
-                    stringBuilder1.append ((isf1 ? "" : ",") )
-                .append(tableColumn.getName())
-                .append("=")
-                .append(tableColumn.getValueSql());
+                    stringBuilder1.append((isf1 ? "" : ","))
+                            .append(tableColumn.getName())
+                            .append("=")
+                            .append(tableColumn.getValueSql());
                     isf1 = false;
                 }
-                if(tableColumn.getSqlObj().constraints().primaryKey()){
+                if (tableColumn.getSqlObj().constraints().primaryKey()) {
                     stringBuilder2.append(tableColumn.getName())
-                .append("=")
-                .append(tableColumn.getValueSql());
+                            .append("=")
+                            .append(tableColumn.getValueSql());
                 }
             }
 
-            String sql = "update " + tableInfo.getTableName() +" set "+ stringBuilder1.toString()+ stringBuilder2.toString();
+            String sql = "update " + tableInfo.getTableName() + " set " + stringBuilder1.toString() + stringBuilder2.toString();
             getDb().execSQL(sql);
         } catch (Exception e) {
             e.printStackTrace();
@@ -215,7 +210,7 @@ public class QDSqlCreator extends SqlCreator {
 
     @Override
     public <T> T findOne(String sql, Class<T> clazz) {
-        List<T> list =  TableHelper.generateModels2(sql, clazz, false);
+        List<T> list = TableHelper.generateModels2(sql, clazz, false);
         if (list == null || list.size() == 0) {
             return null;
         }
@@ -235,16 +230,17 @@ public class QDSqlCreator extends SqlCreator {
         //TableInfo tableInfo = TableHelper.getTableInfo(clazz);
         //String[] params = new String[]{"*"};
         //String whereParams = TableHelper.generateWhereParams(tableInfo);
-       // return TableHelper.generateModels(tableInfo, params, sql, clazz, true);
+        // return TableHelper.generateModels(tableInfo, params, sql, clazz, true);
         return TableHelper.generateModels2(sql, clazz, true);
     }
+
     @Override
-    public List<TableItem> findArray(String tableName,String sql) {
+    public List<TableItem> findArray(String tableName, String sql) {
         //TableInfo tableInfo = TableHelper.getTableInfo(clazz);
         //String[] params = new String[]{"*"};
         //String whereParams = TableHelper.generateWhereParams(tableInfo);
         // return TableHelper.generateModels(tableInfo, params, sql, clazz, true);
-        return TableHelper.generateModels3(tableName,sql,true);
+        return TableHelper.generateModels3(tableName, sql, true);
     }
 
 }

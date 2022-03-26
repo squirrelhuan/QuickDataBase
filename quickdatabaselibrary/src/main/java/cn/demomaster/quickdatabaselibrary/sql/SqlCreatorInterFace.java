@@ -9,8 +9,8 @@ import cn.demomaster.quickdatabaselibrary.model.TableItem;
 
 public interface SqlCreatorInterFace {
     //增加
-    boolean insert(Object model);
-    boolean insert(String tabname,List<TableColumn> tableColumnList);
+    void insert(Object model);
+    void insert(String tabname,List<TableColumn> tableColumnList);
     boolean insertArray(List models);
     //删除
     //boolean delete(Object model);

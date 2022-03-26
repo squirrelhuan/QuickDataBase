@@ -16,7 +16,7 @@ public class Member {
 
     @SQLObj(name = "name")
     private String name;
-
+    
     @SQLObj(name = "AGE")
     private int age;
 

@@ -97,7 +97,7 @@ public class TableView extends HorizontalScrollView implements TabAttrs {
                 TextView textView = new TextView(getContext());
                 textView.setText(titles[i]);
                 textView.setTextColor(Color.BLACK);
-                textView.setBackgroundColor(Color.RED);
+                textView.setBackgroundColor(Color.GREEN);
                 textView.setPadding(20, 20, 20, 20);
                 tabWidths[i] = 300;
                 ViewGroup.LayoutParams layoutParams = new TableRow.LayoutParams(300, ViewGroup.LayoutParams.WRAP_CONTENT);

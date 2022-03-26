@@ -268,13 +268,13 @@ public class QuickDbHelper extends SQLiteOpenHelper implements SqlCreatorInterFa
     }
 
     @Override
-    public boolean insert(Object model) {
-        return sqlCreator.insert(model);
+    public void insert(Object model) {
+        sqlCreator.insert(model);
     }
 
     @Override
-    public boolean insert(String tabname, List<TableColumn> tableColumnList) {
-        return sqlCreator.insert(tabname,tableColumnList);
+    public void insert(String tabname, List<TableColumn> tableColumnList) {
+         sqlCreator.insert(tabname,tableColumnList);
     }
 
     @Override
