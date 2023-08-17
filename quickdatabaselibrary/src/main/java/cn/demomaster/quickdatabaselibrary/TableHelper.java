@@ -428,9 +428,7 @@ public class TableHelper {
      * 根据查询游标 生成实体类
      *
      * @param cursor  sql执行结果
-     * @param clazz   目标实体类
      * @param isArray 返回值是否是集合
-     * @param <T>
      * @return
      */
     public static List<TableItem> generateModelsByCursor(Cursor cursor,  boolean isArray) {
